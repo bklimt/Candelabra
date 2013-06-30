@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Candelabra</string>
+    <string name="loading">Loading&#8230;</string>
+    <string name="ip_address">IP Address</string>
+    <string name="api_key">API Key</string>
+    <string name="save">Save</string>
+    <string name="setup">Setup</string>
+</resources>
