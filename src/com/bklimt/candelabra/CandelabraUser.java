@@ -1,5 +1,12 @@
 package com.bklimt.candelabra;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -44,6 +51,12 @@ public class CandelabraUser {
     setIpAddress(preferences.getString("ipAddress", "192.168.1.3"));
     setUsername(preferences.getString("userName", "CandelabraUserName"));
     setDeviceType(preferences.getString("deviceType", "CandelabraDeviceType"));
+    try {
+      presets = new JSONObject(preferences.getString("presets", "{}"));
+    } catch (JSONException e) {
+      Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to load presets.", e);
+      presets = new JSONObject();
+    }
   }
 
   public void save(Activity activity) {
@@ -52,8 +65,19 @@ public class CandelabraUser {
     editor.putString("ipAddress", getIpAddress());
     editor.putString("userName", getUserName());
     editor.putString("deviceType", getDeviceType());
+    editor.putString("presets", presets.toString());
     editor.commit();
   }
+  
+  public void addPreset(String name, JSONArray lights) {
+    try {
+      presets.put(name, lights);
+    } catch (JSONException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  private JSONObject presets = new JSONObject();
   
   private static CandelabraUser currentUser = new CandelabraUser();
 }

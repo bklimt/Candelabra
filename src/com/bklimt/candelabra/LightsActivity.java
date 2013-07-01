@@ -18,6 +18,9 @@ public class LightsActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.lights);
 
+    //Spinner presetsSpinner = (Spinner) findViewById(R.id.presets_spinner);
+    //presetsSpinner.setAdapter(adapter);
+    
     ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
     for (int i = 1; i <= 3; ++i) {
