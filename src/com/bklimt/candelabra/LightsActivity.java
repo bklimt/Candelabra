@@ -9,22 +9,14 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 public class LightsActivity extends Activity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.lights);
-
-    Button setupButton = (Button) findViewById(R.id.setup_button);
-    setupButton.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        startActivity(new Intent("candelabra.intent.action.SETUP"));
-      }
-    });
 
     ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -47,5 +39,24 @@ public class LightsActivity extends Activity {
         }
       }));
     }
+  }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.lights, menu);
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    // Handle item selection
+    switch (item.getItemId()) {
+      case R.id.setup: {
+        startActivity(new Intent("candelabra.intent.action.SETUP"));
+        return true;
+      }
+    }
+    return false;
   }
 }
