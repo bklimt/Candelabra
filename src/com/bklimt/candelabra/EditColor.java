@@ -40,8 +40,8 @@ public class EditColor extends View {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     getDrawingRect(drawingRect);
-    if (bitmap == null || bitmap.getWidth() != drawingRect.width()
-        || bitmap.getHeight() != drawingRect.height()) {
+    if (bitmap == null || bitmap.getWidth() != drawingRect.width() / 2
+        || bitmap.getHeight() != drawingRect.height() / 2) {
       updateBitmap(true);
     }
     canvas.drawBitmap(bitmap, null, drawingRect, paint);
@@ -61,7 +61,7 @@ public class EditColor extends View {
     switch (action) {
       case MotionEvent.ACTION_DOWN: {
         float[] hsv = { 0.0f, 0.0f, 1.0f };
-        if (getColorAt((int) event.getX(), (int) event.getY(), hsv)) {
+        if (getColorAt((int) event.getX() / 2, (int) event.getY() / 2, hsv)) {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
@@ -72,7 +72,7 @@ public class EditColor extends View {
       }
       case MotionEvent.ACTION_MOVE: {
         float[] hsv = { 0.0f, 0.0f, 1.0f };
-        if (getColorAt((int) event.getX(), (int) event.getY(), hsv)) {
+        if (getColorAt((int) event.getX() / 2, (int) event.getY() / 2, hsv)) {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
@@ -132,24 +132,24 @@ public class EditColor extends View {
     float radius = saturation * (outerRadius - innerRadius) + innerRadius;
     float x = (float) Math.cos(angle) * radius + cx;
     float y = (float) Math.sin(angle) * radius + cy;
-    return new Point((int) x, (int) y);
+    return new Point((int) x * 2, (int) y * 2);
   }
 
   private Point getSquarePoint() {
     if (horizontal) {
       float x = (value * square.width()) + square.left;
       float y = (saturation * square.height()) + square.top;
-      return new Point((int) x, (int) y);
+      return new Point((int) x * 2, (int) y * 2);
     } else {
       float x = (saturation * square.width()) + square.left;
       float y = (value * square.height()) + square.top;
-      return new Point((int) x, (int) y);
+      return new Point((int) x * 2, (int) y * 2);
     }
   }
 
   private void updateBitmap(boolean replaceBitmap) {
-    final int width = drawingRect.width();
-    final int height = drawingRect.height();
+    final int width = drawingRect.width() / 2;
+    final int height = drawingRect.height() / 2;
 
     cx = 5;
     cy = 5;
