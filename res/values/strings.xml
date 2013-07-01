@@ -7,4 +7,7 @@
     <string name="device_type">Device Type</string>
     <string name="save">Save</string>
     <string name="setup">Setup</string>
+    <string name="light1">Light 1</string>
+    <string name="light2">Light 2</string>
+    <string name="light3">Light 3</string>
 </resources>
