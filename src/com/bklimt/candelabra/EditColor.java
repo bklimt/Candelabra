@@ -65,7 +65,7 @@ public class EditColor extends View {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
-          notifyListeners();
+          notifyListeners(false);
           invalidate();
         }
         break;
@@ -76,13 +76,14 @@ public class EditColor extends View {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
-          notifyListeners();
+          notifyListeners(false);
           invalidate();
         }
         break;
       }
       case MotionEvent.ACTION_UP: {
         updateBitmap(false);
+        notifyListeners(true);
         invalidate();
         break;
       }
@@ -94,9 +95,9 @@ public class EditColor extends View {
     listeners.add(listener);
   }
   
-  private void notifyListeners() {
+  private void notifyListeners(boolean finished) {
     for (ColorListener listener : listeners) {
-      listener.onColorChanged(hue, saturation, value);
+      listener.onColorChanged(hue, saturation, value, finished);
     }
   }
   

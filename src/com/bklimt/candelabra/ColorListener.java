@@ -1,5 +1,5 @@
 package com.bklimt.candelabra;
 
 public interface ColorListener {
-  void onColorChanged(float hue, float saturation, float value);
+  void onColorChanged(float hue, float saturation, float value, boolean finished);
 }

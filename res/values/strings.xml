@@ -3,7 +3,8 @@
     <string name="app_name">Candelabra</string>
     <string name="loading">Loading&#8230;</string>
     <string name="ip_address">IP Address</string>
-    <string name="api_key">API Key</string>
+    <string name="username">Username</string>
+    <string name="device_type">Device Type</string>
     <string name="save">Save</string>
     <string name="setup">Setup</string>
 </resources>

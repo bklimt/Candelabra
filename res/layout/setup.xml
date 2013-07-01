@@ -21,10 +21,23 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/api_key" />
+        android:text="@string/username" />
 
     <EditText
-        android:id="@+id/api_key_edit"
+        android:id="@+id/user_name_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:ems="10" >
+    </EditText>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/device_type" />
+
+    <EditText
+        android:id="@+id/device_type_edit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text"

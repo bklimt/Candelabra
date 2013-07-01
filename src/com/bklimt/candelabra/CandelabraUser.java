@@ -23,25 +23,35 @@ public class CandelabraUser {
     ipAddress.set(newAddress);
   }
 
-  private TrackableField<String> apiKey = new TrackableField<String>();
-  public String getApiKey() {
-    return apiKey.get();
+  private TrackableField<String> userName = new TrackableField<String>();
+  public String getUserName() {
+    return userName.get();
   }  
-  public void setApiKey(String newKey) {
-    apiKey.set(newKey);
+  public void setUsername(String newUsername) {
+    userName.set(newUsername);
+  }
+  
+  private TrackableField<String> deviceType = new TrackableField<String>();
+  public String getDeviceType() {
+    return deviceType.get();
+  }  
+  public void setDeviceType(String newDeviceType) {
+    deviceType.set(newDeviceType);
   }
   
   public void fetch(Activity activity) {
     SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
-    setIpAddress(preferences.getString("ipAddress", ""));
-    setApiKey(preferences.getString("apiKey", ""));
+    setIpAddress(preferences.getString("ipAddress", "192.168.1.3"));
+    setUsername(preferences.getString("userName", "CandelabraUserName"));
+    setDeviceType(preferences.getString("deviceType", "CandelabraDeviceType"));
   }
 
   public void save(Activity activity) {
     SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
     Editor editor = preferences.edit();
     editor.putString("ipAddress", getIpAddress());
-    editor.putString("apiKey", getApiKey());
+    editor.putString("userName", getUserName());
+    editor.putString("deviceType", getDeviceType());
     editor.commit();
   }
   
