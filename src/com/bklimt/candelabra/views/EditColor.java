@@ -1,7 +1,9 @@
-package com.bklimt.candelabra;
+package com.bklimt.candelabra.views;
 
 import java.util.ArrayList;
 import java.util.logging.Logger;
+
+import com.bklimt.candelabra.models.HSVColor;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -35,6 +37,16 @@ public class EditColor extends View {
 
   public void init() {
   }
+  
+  public void setColor(HSVColor color) {
+    hue = color.getHue() * (360.0f / 0x10000);
+    saturation = color.getSat() / 255.0f;
+    value = color.getBri() / 255.0f;
+    if (bitmap != null) {
+      updateBitmap(false);
+    }
+    invalidate();
+  }
 
   @Override
   protected void onDraw(Canvas canvas) {
@@ -47,9 +59,17 @@ public class EditColor extends View {
     canvas.drawBitmap(bitmap, null, drawingRect, paint);
 
     paint.setStyle(Style.STROKE);
+    paint.setStrokeWidth(4.0f);
+    paint.setColor(Color.WHITE);
+    Point point = getCirclePoint();
+    canvas.drawCircle(point.x, point.y, 5, paint);
+    point = getSquarePoint();
+    canvas.drawCircle(point.x, point.y, 5, paint);
+
+    paint.setStyle(Style.STROKE);
     paint.setStrokeWidth(2.0f);
     paint.setColor(Color.BLACK);
-    Point point = getCirclePoint();
+    point = getCirclePoint();
     canvas.drawCircle(point.x, point.y, 5, paint);
     point = getSquarePoint();
     canvas.drawCircle(point.x, point.y, 5, paint);
@@ -213,11 +233,11 @@ public class EditColor extends View {
 
   private Rect square = new Rect();
 
-  boolean horizontal;
+  private boolean horizontal;
 
-  float hue = 0.0f;
-  float saturation = 0.0f;
-  float value = 1.0f;
+  private float hue = 0.0f;
+  private float saturation = 0.0f;
+  private float value = 1.0f;
   
-  ArrayList<ColorListener> listeners = new ArrayList<ColorListener>();
+  private ArrayList<ColorListener> listeners = new ArrayList<ColorListener>();
 }

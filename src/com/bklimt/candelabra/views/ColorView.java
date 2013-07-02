@@ -1,4 +1,4 @@
-package com.bklimt.candelabra;
+package com.bklimt.candelabra.views;
 
 import android.content.Context;
 import android.graphics.Canvas;

@@ -7,10 +7,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.bklimt.candelabra.models.Light;
 
 import com.parse.Parse;
 import com.parse.ParseACL;
@@ -30,7 +34,61 @@ public class CandelabraApplication extends Application {
     ParseACL defaultACL = new ParseACL();
     ParseACL.setDefaultACL(defaultACL, true);
   }
+  
+  public Map<String, Light> getLights() {
+    return lights;
+  }
 
+  public void updateLights() throws Exception {
+    Light.getLights(lights);
+  }
+
+  public static String readFully(InputStream stream) throws IOException {
+    InputStream in = new BufferedInputStream(stream);
+    byte[] buffer = new byte[1024];
+    StringBuilder builder = new StringBuilder();
+    int read = -1;
+    while ((read = in.read(buffer)) >= 0) {
+      builder.append(new String(buffer, 0, read));
+    }
+    return builder.toString();
+  }
+  
+  public static JSONObject get(URL url) throws Exception {
+    HttpURLConnection connection = null;
+    String json = null;
+    try {
+      connection = (HttpURLConnection) url.openConnection();
+      json = readFully(connection.getInputStream());
+
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    } finally {
+      if (connection != null) {
+        connection.disconnect();
+      }
+    }
+
+    JSONObject object = null;
+    try {
+      object = new JSONObject(json);
+      if (object.has("error")) {
+        JSONObject error = object.getJSONObject("error");
+        if (error.optInt("type") == 101) {
+          throw new RuntimeException(
+              "Please press the link button on the router and then try again.");
+        }
+        throw new RuntimeException("Error " + error.optString("type") + ": "
+            + error.optString("description"));
+      }
+
+    } catch (JSONException je) {
+      throw je;
+    }
+    
+    return object;
+  }
+  
   public static JSONArray put(URL url, JSONObject command) throws Exception {
     return request("PUT", url, command);
   }
@@ -54,14 +112,7 @@ public class CandelabraApplication extends Application {
       out.write(commandString.getBytes());
       out.close();
 
-      InputStream in = new BufferedInputStream(connection.getInputStream());
-      byte[] buffer = new byte[1024];
-      StringBuilder builder = new StringBuilder();
-      int read = -1;
-      while ((read = in.read(buffer)) >= 0) {
-        builder.append(new String(buffer, 0, read));
-      }
-      json = builder.toString();
+      json = readFully(connection.getInputStream());
 
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
@@ -91,4 +142,6 @@ public class CandelabraApplication extends Application {
     
     return array;
   }
+  
+  private Map<String, Light> lights = new HashMap<String, Light>();
 }

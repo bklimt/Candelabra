@@ -1,4 +1,6 @@
-package com.bklimt.candelabra;
+package com.bklimt.candelabra.models;
+
+import com.bindroid.trackable.TrackableInt;
 
 import android.graphics.Color;
 
@@ -44,5 +46,37 @@ public class HSVColor {
     g += m;
     b += m;
     return Color.rgb((int) (r * 255), (int) (g * 255), (int) (b * 255));
+  }
+  
+  public HSVColor() {
+  }
+
+  private TrackableInt hue = new TrackableInt();
+  public int getHue() {
+    return hue.get();
+  }
+  public void setHue(int newHue) {
+    hue.set(newHue);
+  }
+  
+  private TrackableInt sat = new TrackableInt();
+  public int getSat() {
+    return sat.get();
+  }
+  public void setSat(int newSat) {
+    sat.set(newSat);
+  }
+  
+  private TrackableInt bri = new TrackableInt();
+  public int getBri() {
+    return bri.get();
+  }
+  public void setBri(int newBri) {
+    bri.set(newBri);
+  }
+
+  public int getColor() {
+    float[] hsv = { hue.get() * (360.0f / 0x10000), sat.get() / 255.0f, bri.get() / 255.0f };
+    return getColor(hsv);
   }
 }

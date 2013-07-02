@@ -14,7 +14,7 @@
         android:id="@+id/light"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        class="com.bklimt.candelabra.LightFragment"
+        class="com.bklimt.candelabra.views.LightFragment"
         tools:layout="@layout/light" />
 
 </LinearLayout>

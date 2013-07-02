@@ -1,4 +1,4 @@
-package com.bklimt.candelabra;
+package com.bklimt.candelabra.models;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +45,7 @@ public class CandelabraUser {
   public void setDeviceType(String newDeviceType) {
     deviceType.set(newDeviceType);
   }
-  
+
   public void fetch(Activity activity) {
     SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
     setIpAddress(preferences.getString("ipAddress", "192.168.1.3"));

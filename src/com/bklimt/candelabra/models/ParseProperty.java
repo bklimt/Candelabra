@@ -1,4 +1,4 @@
-package com.bklimt.candelabra;
+package com.bklimt.candelabra.models;
 
 import com.bindroid.utils.Action;
 import com.bindroid.utils.Function;

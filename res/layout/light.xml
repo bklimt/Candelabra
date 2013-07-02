@@ -4,12 +4,12 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <com.bklimt.candelabra.ColorView
+    <com.bklimt.candelabra.views.ColorView
         android:id="@+id/color"
         android:layout_width="match_parent"
         android:layout_height="40dp" />
 
-    <com.bklimt.candelabra.EditColor
+    <com.bklimt.candelabra.views.EditColor
         android:id="@+id/color_edit"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

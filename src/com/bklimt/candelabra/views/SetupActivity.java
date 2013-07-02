@@ -1,4 +1,4 @@
-package com.bklimt.candelabra;
+package com.bklimt.candelabra.views;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,7 +11,9 @@ import org.json.JSONObject;
 import com.bindroid.BindingMode;
 import com.bindroid.ui.EditTextTextProperty;
 import com.bindroid.ui.UiBinder;
+import com.bklimt.candelabra.CandelabraApplication;
 import com.bklimt.candelabra.R;
+import com.bklimt.candelabra.models.CandelabraUser;
 
 import android.app.Activity;
 import android.content.Intent;

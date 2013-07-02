@@ -1,4 +1,4 @@
-package com.bklimt.candelabra;
+package com.bklimt.candelabra.views;
 
 import java.net.URL;
 import java.util.logging.Level;
@@ -6,25 +6,33 @@ import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
+import com.bklimt.candelabra.CandelabraApplication;
 import com.bklimt.candelabra.R;
+import com.bklimt.candelabra.models.CandelabraUser;
+import com.bklimt.candelabra.models.HSVColor;
+import com.bklimt.candelabra.models.Light;
 
-import android.app.Activity;
-import android.content.Intent;
+import android.app.Fragment;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
-public class LightActivity extends Activity {
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.light);
+public class LightFragment extends Fragment {
 
-    final ColorView colorView = (ColorView) findViewById(R.id.color);
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View view = inflater.inflate(R.layout.light, container);
 
-    EditColor colorEdit = (EditColor) findViewById(R.id.color_edit);
+    final ColorView colorView = (ColorView) view.findViewById(R.id.color);
+    colorEdit = (EditColor) view.findViewById(R.id.color_edit);
+
+    if (light != null) {
+      colorEdit.setColor(light.getColor());
+    }
+    
     colorEdit.addListener(new ColorListener() {
       @Override
       public void onColorChanged(float hue, float saturation, float value, boolean finished) {
@@ -34,13 +42,13 @@ public class LightActivity extends Activity {
         if (!finished) {
           return;
         }
-        
+
         CandelabraUser user = CandelabraUser.getCurrentUser();
         final String ipAddress = user.getIpAddress();
-        final String path = "/api/" + user.getUserName() + "/lights/3/state";
-        final int b = (int)(value * 255);
-        final int s = (int)(saturation * 255);
-        final int h = (int)((hue / 360.0f) * 65535);
+        final String path = "/api/" + user.getUserName() + "/lights/" + light.getId() + "/state";
+        final int b = (int) (value * 255);
+        final int s = (int) (saturation * 255);
+        final int h = (int) ((hue / 360.0f) * 65535);
 
         new AsyncTask<Void, Void, Exception>() {
           @Override
@@ -58,12 +66,12 @@ public class LightActivity extends Activity {
             }
             return null;
           }
-          
+
           @Override
           protected void onPostExecute(Exception error) {
             if (error != null) {
               Logger.getLogger(getClass().getName()).log(Level.SEVERE, error.getMessage());
-              Toast toast = Toast.makeText(LightActivity.this,
+              Toast toast = Toast.makeText(LightFragment.this.getActivity(),
                   "Unable to change light color. " + error, Toast.LENGTH_LONG);
               toast.show();
             }
@@ -72,12 +80,16 @@ public class LightActivity extends Activity {
       }
     });
 
-    Button setupButton = (Button) findViewById(R.id.setup_button);
-    setupButton.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        startActivity(new Intent("candelabra.intent.action.SETUP"));
-      }
-    });
+    return view;
   }
+  
+  public void setLight(Light newLight) {
+    light = newLight;
+    if (colorEdit != null) {
+      colorEdit.setColor(newLight.getColor());
+    }
+  }
+  
+  EditColor colorEdit = null;
+  private Light light = null;
 }

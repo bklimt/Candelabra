@@ -1,6 +1,12 @@
-package com.bklimt.candelabra;
+package com.bklimt.candelabra.views;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
+
+import com.bklimt.candelabra.CandelabraApplication;
 import com.bklimt.candelabra.R;
+import com.bklimt.candelabra.models.Light;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
@@ -23,9 +29,12 @@ public class LightsActivity extends Activity {
     
     ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-    for (int i = 1; i <= 3; ++i) {
-      final int light = i;
-      actionBar.addTab(actionBar.newTab().setText("Light " + i).setTabListener(new TabListener() {
+    Map<String, Light> lights = ((CandelabraApplication) getApplication()).getLights();
+    ArrayList<String> keys = new ArrayList<String>(lights.keySet());
+    Collections.sort(keys);
+    for (final String key : keys) {
+      final Light light = lights.get(key);
+      actionBar.addTab(actionBar.newTab().setText("Light " + key).setTabListener(new TabListener() {
         @Override
         public void onTabReselected(Tab tab, FragmentTransaction ft) {
         }
