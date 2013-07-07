@@ -1,10 +1,10 @@
 package com.bklimt.candelabra.models;
 
-import com.bindroid.trackable.TrackableInt;
+import com.bklimt.candelabra.backbone.Model;
 
 import android.graphics.Color;
 
-public class HSVColor {
+public class HSVColor extends Model {
   public static int getColor(float[] hsv) {
     int color = Color.HSVToColor(hsv);
     return (color != 0 ? color : ghettoColor(hsv));
@@ -14,7 +14,7 @@ public class HSVColor {
     float hue = hsv[0];
     float saturation = hsv[1];
     float value = hsv[2];
-    
+
     float c = value * saturation;
     float x = c * (1 - Math.abs(hue / 60f % 2 - 1));
     float m = value - c;
@@ -47,36 +47,48 @@ public class HSVColor {
     b += m;
     return Color.rgb((int) (r * 255), (int) (g * 255), (int) (b * 255));
   }
-  
-  public HSVColor() {
-  }
 
-  private TrackableInt hue = new TrackableInt();
   public int getHue() {
-    return hue.get();
-  }
-  public void setHue(int newHue) {
-    hue.set(newHue);
-  }
-  
-  private TrackableInt sat = new TrackableInt();
-  public int getSat() {
-    return sat.get();
-  }
-  public void setSat(int newSat) {
-    sat.set(newSat);
-  }
-  
-  private TrackableInt bri = new TrackableInt();
-  public int getBri() {
-    return bri.get();
-  }
-  public void setBri(int newBri) {
-    bri.set(newBri);
+    return (Integer)get("hue");
   }
 
+  public void setHue(int newHue) {
+    set("hue", newHue);
+  }
+
+  public int getSat() {
+    return (Integer)get("sat");
+  }
+
+  public void setSat(int newSat) {
+    set("sat", newSat);
+  }
+
+  public int getBri() {
+    return (Integer)get("bri");
+  }
+
+  public void setBri(int newBri) {
+    set("bri", newBri);
+  }
+
+  public void setHSV(float[] hsv) {
+    setHue((int)(hsv[0] * 0x10000) / 360);
+    setSat((int)(hsv[1] * 255));
+    setBri((int)(hsv[2] * 255));
+  }
+  
+  public void getHSV(float hsv[]) {
+    hsv[0] = getHue() * (360.0f / 0x10000);
+    hsv[1] = getSat() / 255.0f;
+    hsv[2] = getBri() / 255.0f;
+  }
+  
   public int getColor() {
-    float[] hsv = { hue.get() * (360.0f / 0x10000), sat.get() / 255.0f, bri.get() / 255.0f };
-    return getColor(hsv);
+    synchronized (lock) {
+      float[] hsv = { 0, 1, 1 };
+      getHSV(hsv);
+      return getColor(hsv);
+    }
   }
 }

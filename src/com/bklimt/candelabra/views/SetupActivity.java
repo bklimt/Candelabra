@@ -8,12 +8,9 @@ import java.util.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.bindroid.BindingMode;
-import com.bindroid.ui.EditTextTextProperty;
-import com.bindroid.ui.UiBinder;
 import com.bklimt.candelabra.CandelabraApplication;
 import com.bklimt.candelabra.R;
-import com.bklimt.candelabra.models.CandelabraUser;
+import com.bklimt.candelabra.models.RootViewModel;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -22,7 +19,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 public class SetupActivity extends Activity {
@@ -30,17 +26,9 @@ public class SetupActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.setup);
 
-    EditText ipAddressEdit = (EditText) findViewById(R.id.ip_address_edit);
-    UiBinder.bind(new EditTextTextProperty(ipAddressEdit), CandelabraUser.getCurrentUser(),
-        "IpAddress", BindingMode.TWO_WAY);
-
-    EditText userNameEdit = (EditText) findViewById(R.id.user_name_edit);
-    UiBinder.bind(new EditTextTextProperty(userNameEdit), CandelabraUser.getCurrentUser(),
-        "UserName", BindingMode.TWO_WAY);
-
-    EditText deviceTypeEdit = (EditText) findViewById(R.id.device_type_edit);
-    UiBinder.bind(new EditTextTextProperty(deviceTypeEdit), CandelabraUser.getCurrentUser(),
-        "DeviceType", BindingMode.TWO_WAY);
+    RootViewModel.get().bindToEditText(this, R.id.ip_address_edit, "ipAddress");
+    RootViewModel.get().bindToEditText(this, R.id.user_name_edit, "userName");
+    RootViewModel.get().bindToEditText(this, R.id.device_type_edit, "deviceType");
 
     final Button saveButton = (Button) findViewById(R.id.save_button);
     saveButton.setOnClickListener(new OnClickListener() {
@@ -54,20 +42,20 @@ public class SetupActivity extends Activity {
 
           @Override
           protected Exception doInBackground(Void... params) {
-            CandelabraUser user = CandelabraUser.getCurrentUser();
-            user.save(SetupActivity.this);
+            RootViewModel root = RootViewModel.get();
+            root.saveDeviceSettings(SetupActivity.this);
 
             JSONObject command = new JSONObject();
             try {
-              command.put("username", user.getUserName());
-              command.put("devicetype", user.getDeviceType());
+              command.put("username", root.getUserName());
+              command.put("devicetype", root.getDeviceType());
             } catch (JSONException je) {
               return new RuntimeException(je);
             }
 
             URL url;
             try {
-              url = new URL("http", user.getIpAddress(), 80, "/api");
+              url = new URL("http", root.getIpAddress(), 80, "/api");
             } catch (MalformedURLException mue) {
               return new RuntimeException(mue);
             }

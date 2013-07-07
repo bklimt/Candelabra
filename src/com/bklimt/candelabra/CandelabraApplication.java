@@ -7,14 +7,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.bklimt.candelabra.models.Light;
 
 import com.parse.Parse;
 import com.parse.ParseACL;
@@ -35,14 +31,6 @@ public class CandelabraApplication extends Application {
     ParseACL.setDefaultACL(defaultACL, true);
   }
   
-  public Map<String, Light> getLights() {
-    return lights;
-  }
-
-  public void updateLights() throws Exception {
-    Light.getLights(lights);
-  }
-
   public static String readFully(InputStream stream) throws IOException {
     InputStream in = new BufferedInputStream(stream);
     byte[] buffer = new byte[1024];
@@ -142,6 +130,4 @@ public class CandelabraApplication extends Application {
     
     return array;
   }
-  
-  private Map<String, Light> lights = new HashMap<String, Light>();
 }

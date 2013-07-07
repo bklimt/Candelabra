@@ -3,6 +3,7 @@ package com.bklimt.candelabra.views;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import com.bklimt.candelabra.backbone.ModelListener;
 import com.bklimt.candelabra.models.HSVColor;
 
 import android.content.Context;
@@ -19,7 +20,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class EditColor extends View {
+public class EditColor extends View implements ModelListener {
   public EditColor(Context context) {
     super(context);
     init();
@@ -38,13 +39,30 @@ public class EditColor extends View {
   public void init() {
   }
   
-  public void setColor(HSVColor color) {
-    hue = color.getHue() * (360.0f / 0x10000);
-    saturation = color.getSat() / 255.0f;
-    value = color.getBri() / 255.0f;
+  public void setColor(HSVColor newColor) {
+    if (color != null) {
+      color.removeListener(this);
+    }
+    color = newColor;
+    color.addListener(this);
+
+    float[] hsv = { 0, 1, 1 };
+    color.getHSV(hsv);
+    hue = hsv[0];
+    saturation = hsv[1];
+    value = hsv[2];
     if (bitmap != null) {
       updateBitmap(false);
     }
+    invalidate();
+  }
+  
+  public void onChanged(String key, Object newValue) {
+    float[] hsv = { 0, 1, 1 };
+    color.getHSV(hsv);
+    hue = hsv[0];
+    saturation = hsv[1];
+    value = hsv[2];
     invalidate();
   }
 
@@ -61,17 +79,17 @@ public class EditColor extends View {
     paint.setStyle(Style.STROKE);
     paint.setStrokeWidth(4.0f);
     paint.setColor(Color.WHITE);
-    Point point = getCirclePoint();
+    getCirclePoint(point);
     canvas.drawCircle(point.x, point.y, 5, paint);
-    point = getSquarePoint();
+    getSquarePoint(point);
     canvas.drawCircle(point.x, point.y, 5, paint);
 
     paint.setStyle(Style.STROKE);
     paint.setStrokeWidth(2.0f);
     paint.setColor(Color.BLACK);
-    point = getCirclePoint();
+    getCirclePoint(point);
     canvas.drawCircle(point.x, point.y, 5, paint);
-    point = getSquarePoint();
+    getSquarePoint(point);
     canvas.drawCircle(point.x, point.y, 5, paint);
   }
 
@@ -82,6 +100,9 @@ public class EditColor extends View {
       case MotionEvent.ACTION_DOWN: {
         float[] hsv = { 0.0f, 0.0f, 1.0f };
         if (getColorAt((int) event.getX() / 2, (int) event.getY() / 2, hsv)) {
+          if (color != null) {
+            color.setHSV(hsv);
+          }
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
@@ -93,6 +114,9 @@ public class EditColor extends View {
       case MotionEvent.ACTION_MOVE: {
         float[] hsv = { 0.0f, 0.0f, 1.0f };
         if (getColorAt((int) event.getX() / 2, (int) event.getY() / 2, hsv)) {
+          if (color != null) {
+            color.setHSV(hsv);
+          }
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
@@ -147,23 +171,23 @@ public class EditColor extends View {
     return false;
   }
 
-  private Point getCirclePoint() {
+  private void getCirclePoint(Point point) {
     double angle = (hue * (Math.PI / 180.0f)) - Math.PI;
     float radius = saturation * (outerRadius - innerRadius) + innerRadius;
     float x = (float) Math.cos(angle) * radius + cx;
     float y = (float) Math.sin(angle) * radius + cy;
-    return new Point((int) x * 2, (int) y * 2);
+    point.set((int) x * 2, (int) y * 2);
   }
 
-  private Point getSquarePoint() {
+  private void getSquarePoint(Point point) {
     if (horizontal) {
       float x = (value * square.width()) + square.left;
       float y = (saturation * square.height()) + square.top;
-      return new Point((int) x * 2, (int) y * 2);
+      point.set((int) x * 2, (int) y * 2);
     } else {
       float x = (saturation * square.width()) + square.left;
       float y = (value * square.height()) + square.top;
-      return new Point((int) x * 2, (int) y * 2);
+      point.set((int) x * 2, (int) y * 2);
     }
   }
 
@@ -221,8 +245,9 @@ public class EditColor extends View {
       }
     }.execute();
   }
-
+  
   private Rect drawingRect = new Rect();
+  private Point point = new Point();
   private Paint paint = new Paint();
   private Bitmap bitmap;
 
@@ -235,6 +260,7 @@ public class EditColor extends View {
 
   private boolean horizontal;
 
+  private HSVColor color = null;
   private float hue = 0.0f;
   private float saturation = 0.0f;
   private float value = 1.0f;

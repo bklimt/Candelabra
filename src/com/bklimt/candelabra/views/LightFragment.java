@@ -8,8 +8,7 @@ import org.json.JSONObject;
 
 import com.bklimt.candelabra.CandelabraApplication;
 import com.bklimt.candelabra.R;
-import com.bklimt.candelabra.models.CandelabraUser;
-import com.bklimt.candelabra.models.HSVColor;
+import com.bklimt.candelabra.models.RootViewModel;
 import com.bklimt.candelabra.models.Light;
 
 import android.app.Fragment;
@@ -26,29 +25,27 @@ public class LightFragment extends Fragment {
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.light, container);
 
-    final ColorView colorView = (ColorView) view.findViewById(R.id.color);
+    colorView = (ColorView) view.findViewById(R.id.color);
     colorEdit = (EditColor) view.findViewById(R.id.color_edit);
 
     if (light != null) {
+      colorView.setColor(light.getColor());
       colorEdit.setColor(light.getColor());
     }
     
     colorEdit.addListener(new ColorListener() {
       @Override
       public void onColorChanged(float hue, float saturation, float value, boolean finished) {
-        float[] hsv = { hue, saturation, value };
-        colorView.setColor(HSVColor.getColor(hsv));
-
         if (!finished) {
           return;
         }
 
-        CandelabraUser user = CandelabraUser.getCurrentUser();
-        final String ipAddress = user.getIpAddress();
-        final String path = "/api/" + user.getUserName() + "/lights/" + light.getId() + "/state";
-        final int b = (int) (value * 255);
-        final int s = (int) (saturation * 255);
-        final int h = (int) ((hue / 360.0f) * 65535);
+        RootViewModel root = RootViewModel.get();
+        final String ipAddress = root.getIpAddress();
+        final String path = "/api/" + root.getUserName() + "/lights/" + light.getId() + "/state";
+        
+        float hsv[] = { hue, saturation, value };
+        light.getColor().setHSV(hsv);
 
         new AsyncTask<Void, Void, Exception>() {
           @Override
@@ -56,9 +53,9 @@ public class LightFragment extends Fragment {
             try {
               URL url = new URL("http", ipAddress, 80, path);
               JSONObject command = new JSONObject();
-              command.put("bri", b);
-              command.put("sat", s);
-              command.put("hue", h);
+              command.put("hue", light.getColor().getHue());
+              command.put("sat", light.getColor().getSat());
+              command.put("bri", light.getColor().getBri());
               CandelabraApplication.put(url, command);
 
             } catch (Exception e) {
@@ -88,8 +85,12 @@ public class LightFragment extends Fragment {
     if (colorEdit != null) {
       colorEdit.setColor(newLight.getColor());
     }
+    if (colorView != null) {
+      colorView.setColor(newLight.getColor());
+    }
   }
   
+  ColorView colorView = null;
   EditColor colorEdit = null;
   private Light light = null;
 }
