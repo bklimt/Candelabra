@@ -52,10 +52,12 @@ public class StartActivity extends Activity {
   }
 
   private void startNextActivity(boolean setup) {
+    Intent intent = null;
     if (!setup) {
-      startActivity(new Intent("candelabra.intent.action.SETUP"));
+      intent = new Intent("candelabra.intent.action.SETUP");
     } else {
-      startActivity(new Intent("candelabra.intent.action.LIGHT"));
+      intent = new Intent("candelabra.intent.action.LIGHT");
     }
+    startActivity(intent);
   }
 }

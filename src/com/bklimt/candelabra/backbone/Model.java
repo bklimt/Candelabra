@@ -133,8 +133,7 @@ public abstract class Model {
   public void bindToEditText(final Activity activity, int id, final String key) {
     final EditText editText = (EditText) activity.findViewById(id);
 
-    final Capture<Boolean> handling = new Capture<Boolean>(false);
-    editText.setText((String) get("key"));
+    editText.setText((String) get(key));
 
     editText.addTextChangedListener(new TextWatcher() {
       @Override
@@ -147,11 +146,7 @@ public abstract class Model {
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if (!handling.get()) {
-          handling.set(true);
-          set(key, s.toString());
-          handling.set(false);
-        }
+        set(key, s.toString());
       }
     });
 
