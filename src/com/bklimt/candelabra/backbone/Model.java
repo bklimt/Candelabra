@@ -13,7 +13,10 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ToggleButton;
 
 public abstract class Model {
   protected Object lock = new Object();
@@ -39,8 +42,8 @@ public abstract class Model {
 
   public void set(String key, Object value) {
     synchronized (lock) {
-      if (!(value instanceof Number || value instanceof String || value instanceof Model ||
-          value instanceof Collection)) {
+      if (!(value instanceof Number || value instanceof Boolean || value instanceof String
+          || value instanceof Model || value instanceof Collection)) {
         throw new RuntimeException("Tried to set invalid type on model.");
       }
       Object oldValue = attributes.get(key);
@@ -61,7 +64,7 @@ public abstract class Model {
       for (String key : attributes.keySet()) {
         Object value = attributes.get(key);
         try {
-          if (value instanceof String || value instanceof Integer) {
+          if (value instanceof String || value instanceof Integer || value instanceof Boolean) {
             object.put(key, value);
           } else if (value instanceof Model) {
             object.put(key, ((Model) value).toJSON());
@@ -87,7 +90,8 @@ public abstract class Model {
         String key = keys.next();
         Object oldValue = attributes.get(key);
         Object newValue = json.opt(key);
-        if (newValue instanceof String || newValue instanceof Integer) {
+        if (newValue instanceof String || newValue instanceof Integer
+            || newValue instanceof Boolean) {
           set(key, newValue);
 
         } else if (newValue instanceof JSONObject) {
@@ -153,6 +157,31 @@ public abstract class Model {
         activity.runOnUiThread(new Runnable() {
           public void run() {
             editText.setText((String) value);
+          }
+        });
+      }
+    });
+  }
+
+  public void bindToToggleButton(final Activity activity, int id, final String key) {
+    final ToggleButton toggleButton = (ToggleButton) activity.findViewById(id);
+
+    Boolean on = (Boolean) get(key);
+    toggleButton.setChecked(on != null && on.booleanValue());
+
+    toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+      @Override
+      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        set(key, isChecked);
+      }
+    });
+
+    addListener(new ModelListener() {
+      @Override
+      public void onChanged(String key, final Object value) {
+        activity.runOnUiThread(new Runnable() {
+          public void run() {
+            toggleButton.setChecked(value != null && ((Boolean) value).booleanValue());
           }
         });
       }

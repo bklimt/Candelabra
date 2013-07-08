@@ -31,6 +31,7 @@ public class Light extends Model {
 
       JSONObject command = new JSONObject();
       try {
+        command.put("on", getOn());
         command.put("hue", getColor().getHue());
         command.put("sat", getColor().getSat());
         command.put("bri", getColor().getBri());
@@ -76,16 +77,28 @@ public class Light extends Model {
   public void setName(String newName) {
     set("name", newName);
   }
+  
+  public boolean getOn() {
+    Boolean on = (Boolean) get("on");
+    return on != null && on.booleanValue();
+  }
+  
+  public void setOn(boolean newValue) {
+    set("on", newValue);
+  }
 
   public void applyPreset(Light preset) {
+    setOn(preset.getOn());
     getColor().setJSON(preset.getColor().toJSON());
   }
 
   public void connect() {
+    addListener(updater);
     getColor().addListener(updater);
   }
 
   public void disconnect() {
+    removeListener(updater);
     getColor().removeListener(updater);
   }
 }

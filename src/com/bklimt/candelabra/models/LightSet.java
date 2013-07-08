@@ -77,6 +77,7 @@ public class LightSet extends Collection<Light> {
         }
         try {
           JSONObject state = lightObject.getJSONObject("state");
+          finalLight.setOn(state.getBoolean("on"));
           finalLight.getColor().setHue(state.getInt("hue"));
           finalLight.getColor().setSat(state.getInt("sat"));
           finalLight.getColor().setBri(state.getInt("bri"));

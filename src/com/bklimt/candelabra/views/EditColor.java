@@ -175,8 +175,8 @@ public class EditColor extends View implements ModelListener {
     } else if (square.contains(x, y)) {
       hsv[0] = hue;
       if (horizontal) {
-        hsv[1] = (float) (y - square.top) / square.height();
-        hsv[2] = (float) (x - square.left) / square.width();
+        hsv[1] = (float) (x - square.left) / square.width();
+        hsv[2] = (float) (y - square.top) / square.height();
       } else {
         hsv[1] = (float) (y - square.top) / square.height();
         hsv[2] = (float) (x - square.left) / square.width();
@@ -196,8 +196,8 @@ public class EditColor extends View implements ModelListener {
 
   private void getSquarePoint(Point point) {
     if (horizontal) {
-      float x = (value * square.width()) + square.left;
-      float y = (saturation * square.height()) + square.top;
+      float x = (saturation * square.width()) + square.left;
+      float y = (value * square.height()) + square.top;
       point.set((int) x * 2, (int) y * 2);
     } else {
       float x = (value * square.width()) + square.left;
@@ -218,10 +218,10 @@ public class EditColor extends View implements ModelListener {
 
     if (width > height) {
       horizontal = true;
-      outerRadius = Math.min(width / 2, height) / 2;
-      cx = width / 4;
+      outerRadius = Math.min((width * 2) / 3, height) / 2;
+      cx = width / 3;
       cy = height / 2;
-      square.set(width / 2, 0, width, height);
+      square.set((width * 2) / 3, 0, width, height);
     } else {
       horizontal = false;
       outerRadius = Math.min(width, height * 3 / 4) / 2;
