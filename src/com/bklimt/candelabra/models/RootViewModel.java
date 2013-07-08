@@ -3,6 +3,7 @@ package com.bklimt.candelabra.models;
 import org.json.JSONObject;
 
 import com.bklimt.candelabra.backbone.Model;
+import com.bklimt.candelabra.util.Callback;
 
 import android.app.Activity;
 import android.content.Context;
@@ -97,8 +98,8 @@ public class RootViewModel extends Model {
     }
   }
 
-  public void fetchCurrentLights() throws Exception {
-    getLights().fetchCurrentLights();
+  public void fetchCurrentLights(Callback<Boolean> callback) {
+    getLights().fetchCurrentLights(callback);
   }
 
   public void saveDeviceSettings(Activity activity) {
@@ -106,5 +107,9 @@ public class RootViewModel extends Model {
     Editor editor = preferences.edit();
     editor.putString("json", toJSON().toString());
     editor.commit();
+  }
+  
+  public void applyPreset(Preset preset) {
+    getLights().applyPreset(preset.getLights());
   }
 }

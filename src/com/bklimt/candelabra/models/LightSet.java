@@ -1,5 +1,6 @@
 package com.bklimt.candelabra.models;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,11 +8,13 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.bklimt.candelabra.CandelabraApplication;
 import com.bklimt.candelabra.backbone.Collection;
 import com.bklimt.candelabra.backbone.Visitor;
+import com.bklimt.candelabra.networking.Http;
+import com.bklimt.candelabra.util.Callback;
 
 public class LightSet extends Collection<Light> {
   public LightSet() {
@@ -20,69 +23,131 @@ public class LightSet extends Collection<Light> {
   public LightSet(JSONArray json) {
     setJSON(json);
   }
-  
+
   public void copy(LightSet other) {
     setJSON(other.toJSON());
   }
 
-  public void fetchCurrentLights() throws Exception {
+  private void fetchLights(final Iterator<String> keys, final JSONObject object,
+      final ArrayList<Light> toAdd, final ArrayList<Light> toRemove,
+      final Callback<Boolean> callback) {
+    if (!keys.hasNext()) {
+      callback.callback(Boolean.TRUE, null);
+      return;
+    }
+
+    String key = keys.next();
+    Light light = findById(key);
+    if (light == null) {
+      light = new Light();
+      toAdd.add(light);
+    } else {
+      toRemove.remove(light);
+    }
+
+    JSONObject value;
+    String name;
+    try {
+      value = object.getJSONObject(key);
+      name = value.getString("name");
+    } catch (JSONException e) {
+      callback.callback(false, e);
+      return;
+    }
+    light.setId(key);
+    light.setName(name);
+
+    final Light finalLight = light;
+
+    RootViewModel root = RootViewModel.get();
+    String userName = root.getUserName();
+    String ipAddress = root.getIpAddress();
+    URL lightURL;
+    try {
+      lightURL = new URL("http", ipAddress, 80, "/api/" + userName + "/lights/" + light.getId());
+    } catch (MalformedURLException e) {
+      callback.callback(null, e);
+      return;
+    }
+    Http.getInstance().get(null, lightURL, new Callback<JSONObject>() {
+      public void callback(JSONObject lightObject, Exception error) {
+        if (lightObject == null) {
+          callback.callback(null, error);
+          return;
+        }
+        try {
+          JSONObject state = lightObject.getJSONObject("state");
+          finalLight.getColor().setHue(state.getInt("hue"));
+          finalLight.getColor().setSat(state.getInt("sat"));
+          finalLight.getColor().setBri(state.getInt("bri"));
+        } catch (JSONException e) {
+          callback.callback(null, e);
+          return;
+        }
+
+        fetchLights(keys, object, toAdd, toRemove, callback);
+      }
+    });
+  }
+
+  public void fetchCurrentLights(final Callback<Boolean> callback) {
     synchronized (lock) {
       RootViewModel root = RootViewModel.get();
       String ipAddress = root.getIpAddress();
-      URL url = new URL("http", ipAddress, 80, "/api/" + root.getUserName() + "/lights");
-      JSONObject object = CandelabraApplication.get(url);
-      @SuppressWarnings("unchecked")
-      Iterator<String> keys = (Iterator<String>) object.keys();
-  
-      // Record all the original lights.
-      final ArrayList<Light> toRemove = new ArrayList<Light>();
-      each(new Visitor<Light>() {
-        @Override
-        public void visit(Light light) {
-          toRemove.add(light);
+      URL url;
+      try {
+        url = new URL("http", ipAddress, 80, "/api/" + root.getUserName() + "/lights");
+      } catch (MalformedURLException e) {
+        callback.callback(null, e);
+        return;
+      }
+      Http.getInstance().get(null, url, new Callback<JSONObject>() {
+        public void callback(JSONObject object, Exception error) {
+          if (error != null) {
+            callback.callback(null, error);
+            return;
+          }
+
+          @SuppressWarnings("unchecked")
+          Iterator<String> keys = (Iterator<String>) object.keys();
+
+          // Record all the original lights.
+          final ArrayList<Light> toRemove = new ArrayList<Light>();
+          each(new Visitor<Light>() {
+            @Override
+            public void visit(Light light) {
+              toRemove.add(light);
+            }
+          });
+
+          final ArrayList<Light> toAdd = new ArrayList<Light>();
+          fetchLights(keys, object, toAdd, toRemove, new Callback<Boolean>() {
+            public void callback(Boolean result, Exception error) {
+              if (error != null) {
+                callback.callback(null, error);
+                return;
+              }
+
+              Collections.sort(toAdd, new Comparator<Light>() {
+                @Override
+                public int compare(Light lhs, Light rhs) {
+                  return lhs.getId().compareTo(rhs.getId());
+                }
+              });
+              for (Light light : toAdd) {
+                add(light);
+              }
+              for (Light light : toRemove) {
+                remove(light);
+              }
+              callback.callback(Boolean.TRUE, null);
+            }
+          });
         }
       });
-      
-      final ArrayList<Light> toAdd = new ArrayList<Light>();
-      while (keys.hasNext()) {
-        String key = keys.next();
-        Light light = findById(key);
-        if (light == null) {
-          light = new Light();
-          toAdd.add(light);
-        } else {
-          toRemove.remove(light);
-        }
-  
-        JSONObject value = object.getJSONObject(key);
-        String name = value.getString("name");
-        light.setId(key);
-        light.setName(name);
-  
-        URL lightURL = new URL("http", ipAddress, 80, "/api/" + root.getUserName() + "/lights/"
-            + light.getId());
-        JSONObject lightObject = CandelabraApplication.get(lightURL);
-        JSONObject state = lightObject.getJSONObject("state");
-        light.getColor().setHue(state.getInt("hue"));
-        light.getColor().setSat(state.getInt("sat"));
-        light.getColor().setBri(state.getInt("bri"));
-      }
-  
-      Collections.sort(toAdd, new Comparator<Light>() {
-        @Override
-        public int compare(Light lhs, Light rhs) {
-          return lhs.getId().compareTo(rhs.getId());
-        }
-      });
-      for (Light light : toAdd) {
-        add(light);
-      }
-      for (Light light : toRemove) {
-        remove(light);
-      }
     }
   }
-  
+
   public void applyPreset(LightSet preset) {
     preset.each(new Visitor<Light>() {
       @Override

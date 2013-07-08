@@ -1,4 +1,4 @@
-package com.bklimt.candelabra.backbone;
+package com.bklimt.candelabra.util;
 
 public class Capture<T> {
   private T value;

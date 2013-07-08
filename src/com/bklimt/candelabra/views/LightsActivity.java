@@ -59,7 +59,7 @@ public class LightsActivity extends Activity implements CollectionListener<Light
         RootViewModel root = RootViewModel.get();
         Preset preset = root.getPresets().findById(presetName);
         log.info("Selected preset " + preset.getName());
-        RootViewModel.get().getLights().copy(preset.getLights());
+        RootViewModel.get().applyPreset(preset);
       }
 
       @Override

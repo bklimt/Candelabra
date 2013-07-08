@@ -5,16 +5,17 @@ import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.bklimt.candelabra.CandelabraApplication;
 import com.bklimt.candelabra.R;
 import com.bklimt.candelabra.models.RootViewModel;
+import com.bklimt.candelabra.networking.Http;
+import com.bklimt.candelabra.util.Callback;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -34,55 +35,51 @@ public class SetupActivity extends Activity {
     saveButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        new AsyncTask<Void, Void, Exception>() {
+        saveButton.setEnabled(false);
+
+        RootViewModel root = RootViewModel.get();
+        root.saveDeviceSettings(SetupActivity.this);
+
+        JSONObject command = new JSONObject();
+        try {
+          command.put("username", root.getUserName());
+          command.put("devicetype", root.getDeviceType());
+        } catch (JSONException je) {
+          saveFinished(saveButton, je);
+          return;
+        }
+
+        URL url;
+        try {
+          url = new URL("http", root.getIpAddress(), 80, "/api");
+        } catch (MalformedURLException mue) {
+          saveFinished(saveButton, mue);
+          return;
+        }
+
+        Http.getInstance().post(null, url, command, new Callback<JSONArray>() {
           @Override
-          protected void onPreExecute() {
-            saveButton.setEnabled(false);
+          public void callback(JSONArray result, Exception error) {
+            saveFinished(saveButton, error);
           }
+        });
+      }
+    });
+  }
 
-          @Override
-          protected Exception doInBackground(Void... params) {
-            RootViewModel root = RootViewModel.get();
-            root.saveDeviceSettings(SetupActivity.this);
-
-            JSONObject command = new JSONObject();
-            try {
-              command.put("username", root.getUserName());
-              command.put("devicetype", root.getDeviceType());
-            } catch (JSONException je) {
-              return new RuntimeException(je);
-            }
-
-            URL url;
-            try {
-              url = new URL("http", root.getIpAddress(), 80, "/api");
-            } catch (MalformedURLException mue) {
-              return new RuntimeException(mue);
-            }
-
-            try {
-              CandelabraApplication.post(url, command);
-            } catch (Exception e) {
-              return e;
-            }
-            
-            return null;
-          }
-
-          @Override
-          protected void onPostExecute(Exception error) {
-            saveButton.setEnabled(true);
-            if (error == null) {
-              startActivity(new Intent("candelabra.intent.action.LIGHT"));
-            } else {
-              Logger.getLogger("com.bklimt.candelabra.SetupActivity").log(Level.SEVERE,
-                  error.getMessage());
-              Toast toast = Toast.makeText(SetupActivity.this,
-                  "Unable to save settings. " + error.getMessage(), Toast.LENGTH_LONG);
-              toast.show();
-            }
-          }
-        }.execute();
+  private void saveFinished(final Button saveButton, final Exception error) {
+    runOnUiThread(new Runnable() {
+      public void run() {
+        saveButton.setEnabled(true);
+        if (error == null) {
+          startActivity(new Intent("candelabra.intent.action.LIGHT"));
+        } else {
+          Logger.getLogger("com.bklimt.candelabra.SetupActivity").log(Level.SEVERE,
+              error.getMessage());
+          Toast toast = Toast.makeText(SetupActivity.this,
+              "Unable to save settings. " + error.getMessage(), Toast.LENGTH_LONG);
+          toast.show();
+        }
       }
     });
   }

@@ -1,18 +1,21 @@
 package com.bklimt.candelabra.views;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.bklimt.candelabra.CandelabraApplication;
 import com.bklimt.candelabra.R;
 import com.bklimt.candelabra.models.RootViewModel;
 import com.bklimt.candelabra.models.Light;
+import com.bklimt.candelabra.networking.Http;
+import com.bklimt.candelabra.util.Callback;
 
 import android.app.Fragment;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,33 +50,46 @@ public class LightFragment extends Fragment {
         float hsv[] = { hue, saturation, value };
         light.getColor().setHSV(hsv);
 
-        new AsyncTask<Void, Void, Exception>() {
-          @Override
-          protected Exception doInBackground(Void... params) {
-            try {
-              URL url = new URL("http", ipAddress, 80, path);
-              JSONObject command = new JSONObject();
-              command.put("hue", light.getColor().getHue());
-              command.put("sat", light.getColor().getSat());
-              command.put("bri", light.getColor().getBri());
-              CandelabraApplication.put(url, command);
+        URL url;
+        try {
+          url = new URL("http", ipAddress, 80, path);
+        } catch (MalformedURLException e) {
+          Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage());
+          Toast toast = Toast.makeText(LightFragment.this.getActivity(),
+              "Unable to change light color. " + e, Toast.LENGTH_LONG);
+          toast.show();
+          return;
+        }
 
-            } catch (Exception e) {
-              return e;
-            }
-            return null;
-          }
-
+        JSONObject command = new JSONObject();
+        try {
+          command.put("hue", light.getColor().getHue());
+          command.put("sat", light.getColor().getSat());
+          command.put("bri", light.getColor().getBri());
+        } catch (JSONException e) {
+          Logger.getLogger(getClass().getName()).log(Level.SEVERE, e.getMessage());
+          Toast toast = Toast.makeText(LightFragment.this.getActivity(),
+              "Unable to change light color. " + e, Toast.LENGTH_LONG);
+          toast.show();
+          return;
+        }
+        
+        Http.getInstance().put("SET_LIGHT_" + light.getId(), url, command, new Callback<JSONArray>() {
           @Override
-          protected void onPostExecute(Exception error) {
-            if (error != null) {
-              Logger.getLogger(getClass().getName()).log(Level.SEVERE, error.getMessage());
-              Toast toast = Toast.makeText(LightFragment.this.getActivity(),
-                  "Unable to change light color. " + error, Toast.LENGTH_LONG);
-              toast.show();
+          public void callback(JSONArray result, final Exception error) {
+            if (error == null) {
+              return;
             }
+            getActivity().runOnUiThread(new Runnable() {
+              public void run() {
+                Logger.getLogger(getClass().getName()).log(Level.SEVERE, error.getMessage());
+                Toast toast = Toast.makeText(LightFragment.this.getActivity(),
+                    "Unable to change light color. " + error, Toast.LENGTH_LONG);
+                toast.show();
+              }
+            });
           }
-        }.execute();
+        });
       }
     });
 
