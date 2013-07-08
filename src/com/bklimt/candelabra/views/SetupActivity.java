@@ -72,7 +72,7 @@ public class SetupActivity extends Activity {
       public void run() {
         saveButton.setEnabled(true);
         if (error == null) {
-          startActivity(new Intent("candelabra.intent.action.LIGHT"));
+          startActivity(new Intent(SetupActivity.this, LightsActivity.class));
         } else {
           Logger.getLogger("com.bklimt.candelabra.SetupActivity").log(Level.SEVERE,
               error.getMessage());

@@ -10,12 +10,16 @@ import com.bklimt.candelabra.models.Light;
 import com.bklimt.candelabra.models.LightSet;
 import com.bklimt.candelabra.models.Preset;
 import com.bklimt.candelabra.models.RootViewModel;
+import com.bklimt.candelabra.util.Callback;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
 import android.app.ActionBar.TabListener;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -25,6 +29,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 
 public class LightsActivity extends Activity implements CollectionListener<Light> {
@@ -90,10 +95,13 @@ public class LightsActivity extends Activity implements CollectionListener<Light
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle item selection
     switch (item.getItemId()) {
       case R.id.setup: {
-        startActivity(new Intent("candelabra.intent.action.SETUP"));
+        startActivity(new Intent(this, SetupActivity.class));
+        return true;
+      }
+      case R.id.save: {
+        showSaveDialog();
         return true;
       }
     }
@@ -111,6 +119,64 @@ public class LightsActivity extends Activity implements CollectionListener<Light
     log.info("Removed light " + light.getId() + " " + light.getName());
   }
 
+  private void showSaveDialog() {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.save_preset);
+    
+    final EditText editText = new EditText(this);
+    builder.setView(editText);
+    
+    builder.setPositiveButton(R.string.save, new OnClickListener() {
+      @Override
+      public void onClick(final DialogInterface dialog, int which) {
+        final String name = editText.getText().toString().trim();
+        if (name.length() > 0) {
+          if (RootViewModel.get().getPresets().findById(name) == null) {
+            RootViewModel.get().savePreset(name);
+            dialog.dismiss();
+            return;
+          }
+          confirmOverwrite(new Callback<Boolean>() {
+            @Override
+            public void callback(Boolean result, Exception error) {
+              if (Boolean.TRUE.equals(result)) {
+                RootViewModel.get().savePreset(name);
+                dialog.dismiss();
+              }
+            }
+          });
+        }
+      }
+    });
+    builder.setNegativeButton(R.string.cancel, new OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+        dialog.dismiss();
+      }
+    });
+    builder.show();
+  }
+  
+  private void confirmOverwrite(final Callback<Boolean> callback) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(R.string.overwrite_preset);
+    builder.setPositiveButton(R.string.save, new OnClickListener() {
+      @Override
+      public void onClick(final DialogInterface dialog, int which) {
+        callback.callback(Boolean.TRUE, null);
+        dialog.dismiss();
+      }
+    });
+    builder.setNegativeButton(R.string.cancel, new OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+        callback.callback(Boolean.FALSE, null);
+        dialog.dismiss();
+      }
+    });
+    builder.show();
+  }
+  
   private void addLight(final Light light) {
     runOnUiThread(new Runnable() {
       public void run() {

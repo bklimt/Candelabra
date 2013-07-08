@@ -54,9 +54,9 @@ public class StartActivity extends Activity {
   private void startNextActivity(boolean setup) {
     Intent intent = null;
     if (!setup) {
-      intent = new Intent("candelabra.intent.action.SETUP");
+      intent = new Intent(this, SetupActivity.class);
     } else {
-      intent = new Intent("candelabra.intent.action.LIGHT");
+      intent = new Intent(this, LightsActivity.class);
     }
     startActivity(intent);
   }
