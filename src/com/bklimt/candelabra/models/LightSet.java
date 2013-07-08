@@ -136,9 +136,11 @@ public class LightSet extends Collection<Light> {
               });
               for (Light light : toAdd) {
                 add(light);
+                light.connect();
               }
               for (Light light : toRemove) {
                 remove(light);
+                light.disconnect();
               }
               callback.callback(Boolean.TRUE, null);
             }

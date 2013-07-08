@@ -1,6 +1,5 @@
 package com.bklimt.candelabra.views;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import com.bklimt.candelabra.backbone.ModelListener;
@@ -106,7 +105,6 @@ public class EditColor extends View implements ModelListener {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
-          notifyListeners(false);
           invalidate();
         }
         break;
@@ -120,14 +118,12 @@ public class EditColor extends View implements ModelListener {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
-          notifyListeners(false);
           invalidate();
         }
         break;
       }
       case MotionEvent.ACTION_UP: {
         updateBitmap(false);
-        notifyListeners(true);
         invalidate();
         break;
       }
@@ -135,16 +131,6 @@ public class EditColor extends View implements ModelListener {
     return true;
   }
 
-  public void addListener(ColorListener listener) {
-    listeners.add(listener);
-  }
-  
-  private void notifyListeners(boolean finished) {
-    for (ColorListener listener : listeners) {
-      listener.onColorChanged(hue, saturation, value, finished);
-    }
-  }
-  
   private boolean getColorAt(int x, int y, float[] hsv) {
     int dx = x - cx;
     int dy = y - cy;
@@ -264,6 +250,4 @@ public class EditColor extends View implements ModelListener {
   private float hue = 0.0f;
   private float saturation = 0.0f;
   private float value = 1.0f;
-  
-  private ArrayList<ColorListener> listeners = new ArrayList<ColorListener>();
 }

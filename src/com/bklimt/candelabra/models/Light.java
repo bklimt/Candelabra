@@ -1,8 +1,55 @@
 package com.bklimt.candelabra.models;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.bklimt.candelabra.backbone.Model;
+import com.bklimt.candelabra.backbone.ModelListener;
+import com.bklimt.candelabra.networking.Http;
+import com.bklimt.candelabra.util.Callback;
 
 public class Light extends Model {
+  private class Updater implements ModelListener {
+    public void onChanged(String key, Object value) {
+      RootViewModel root = RootViewModel.get();
+      final String ipAddress = root.getIpAddress();
+      final String path = "/api/" + root.getUserName() + "/lights/" + getId() + "/state";
+  
+      URL url;
+      try {
+        url = new URL("http", ipAddress, 80, path);
+      } catch (MalformedURLException e) {
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to set light color.", e);
+        return;
+      }
+  
+      JSONObject command = new JSONObject();
+      try {
+        command.put("hue", getColor().getHue());
+        command.put("sat", getColor().getSat());
+        command.put("bri", getColor().getBri());
+      } catch (JSONException e) {
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to set light color.", e);
+        return;
+      }
+  
+      Http.getInstance().put("SET_LIGHT_" + getId(), url, command, new Callback<JSONArray>() {
+        @Override
+        public void callback(JSONArray result, final Exception e) {
+          Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to set light color.", e);
+        }
+      });
+    }
+  }
+
+  private Updater updater = new Updater();
+
   public void setDefaults() {
     set("color", new HSVColor());
   }
@@ -29,5 +76,13 @@ public class Light extends Model {
   
   public void applyPreset(Light preset) {
     getColor().setJSON(preset.getColor().toJSON());
+  }
+  
+  public void connect() {
+    getColor().addListener(updater);
+  }
+  
+  public void disconnect() {
+    getColor().removeListener(updater);
   }
 }
