@@ -52,6 +52,17 @@ public class LightsActivity extends Activity implements CollectionListener<Light
         adapter.add(preset.getName());
       }
     });
+    
+    RootViewModel.get().getPresets().addListener(new CollectionListener<Preset>() {
+      @Override
+      public void onAdd(Preset preset) {
+        adapter.add(preset.getName());
+      }
+
+      @Override
+      public void onRemove(Preset preset) {
+      }
+    });
 
     presetsSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
       @Override
@@ -132,7 +143,7 @@ public class LightsActivity extends Activity implements CollectionListener<Light
         final String name = editText.getText().toString().trim();
         if (name.length() > 0) {
           if (RootViewModel.get().getPresets().findById(name) == null) {
-            RootViewModel.get().savePreset(name);
+            RootViewModel.get().savePreset(LightsActivity.this, name);
             dialog.dismiss();
             return;
           }
@@ -140,7 +151,7 @@ public class LightsActivity extends Activity implements CollectionListener<Light
             @Override
             public void callback(Boolean result, Exception error) {
               if (Boolean.TRUE.equals(result)) {
-                RootViewModel.get().savePreset(name);
+                RootViewModel.get().savePreset(LightsActivity.this, name);
                 dialog.dismiss();
               }
             }

@@ -178,8 +178,8 @@ public class EditColor extends View implements ModelListener {
         hsv[1] = (float) (y - square.top) / square.height();
         hsv[2] = (float) (x - square.left) / square.width();
       } else {
-        hsv[1] = (float) (x - square.left) / square.width();
-        hsv[2] = (float) (y - square.top) / square.height();
+        hsv[1] = (float) (y - square.top) / square.height();
+        hsv[2] = (float) (x - square.left) / square.width();
       }
       return true;
     }
@@ -200,8 +200,8 @@ public class EditColor extends View implements ModelListener {
       float y = (saturation * square.height()) + square.top;
       point.set((int) x * 2, (int) y * 2);
     } else {
-      float x = (saturation * square.width()) + square.left;
-      float y = (value * square.height()) + square.top;
+      float x = (value * square.width()) + square.left;
+      float y = (saturation * square.height()) + square.top;
       point.set((int) x * 2, (int) y * 2);
     }
   }

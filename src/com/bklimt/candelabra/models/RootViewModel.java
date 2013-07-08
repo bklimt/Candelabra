@@ -113,13 +113,14 @@ public class RootViewModel extends Model {
     getLights().applyPreset(preset.getLights());
   }
   
-  public void savePreset(String name) {
+  public void savePreset(Activity activity, String name) {
     Preset preset = getPresets().findById(name);
     if (preset == null) {
       preset = new Preset();
       preset.setName(name);
       preset.getLights().setJSON(getLights().toJSON());
     }
-    getPresets().add(preset); 
+    getPresets().add(preset);
+    saveDeviceSettings(activity);
   }
 }
