@@ -27,6 +27,10 @@ public class LightFragment extends Fragment {
   }
 
   public void setLight(Light newLight) {
+    if (light != null) {
+      light.unbindToggleButton(getActivity(), R.id.on_button);
+    }
+    
     light = newLight;
     if (colorEdit != null) {
       colorEdit.setColor(newLight.getColor());
@@ -34,7 +38,7 @@ public class LightFragment extends Fragment {
     if (colorView != null) {
       colorView.setColor(newLight.getColor());
     }
-    light.bindToToggleButton(getActivity(), R.id.on_button, "on");
+    newLight.bindToToggleButton(getActivity(), R.id.on_button, "on");
   }
 
   ColorView colorView = null;

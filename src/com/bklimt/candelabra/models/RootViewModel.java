@@ -66,6 +66,7 @@ public class RootViewModel extends Model {
     Light light1 = new Light();
     light1.setId("1");
     light1.setName("Light 0");
+    light1.setOn(true);
     light1.getColor().setHue(0);
     light1.getColor().setBri(255);
     light1.getColor().setSat(0);
@@ -74,6 +75,7 @@ public class RootViewModel extends Model {
     Light light2 = new Light();
     light2.setId("2");
     light2.setName("Light 1");
+    light2.setOn(true);
     light2.getColor().setHue(0);
     light2.getColor().setBri(255);
     light2.getColor().setSat(0);
@@ -82,6 +84,7 @@ public class RootViewModel extends Model {
     Light light3 = new Light();
     light3.setId("3");
     light3.setName("Light 2");
+    light3.setOn(true);
     light3.getColor().setHue(0);
     light3.getColor().setBri(255);
     light3.getColor().setSat(0);

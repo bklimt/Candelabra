@@ -11,6 +11,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.CompoundButton;
@@ -21,8 +23,14 @@ import android.widget.ToggleButton;
 public abstract class Model {
   protected Object lock = new Object();
   private Logger log = Logger.getLogger(getClass().getName());
+
   private HashMap<String, Object> attributes = new HashMap<String, Object>();
   private ArrayList<ModelListener> listeners = new ArrayList<ModelListener>();
+
+  private ArrayList<EditText> boundEditTexts = new ArrayList<EditText>();
+  private ArrayList<ToggleButton> boundToggleButtons = new ArrayList<ToggleButton>();
+
+  private HashMap<String, TextWatcher> textWatchers = new HashMap<String, TextWatcher>();
 
   public Model() {
     setDefaults();
@@ -122,69 +130,84 @@ public abstract class Model {
     }
   }
 
-  protected void notifyChanged(String key, Object oldValue, Object newValue) {
+  protected void notifyChanged(String key, Object oldValue, final Object newValue) {
     synchronized (lock) {
       log.info("Firing change event for " + key + ": " + oldValue + " -> " + newValue);
       for (ModelListener listener : listeners) {
         listener.onChanged(key, newValue);
       }
+      Runnable notifyBoundControls = new Runnable() {
+        public void run() {
+          for (EditText editText : boundEditTexts) {
+            editText.setText((String) newValue);
+          }
+          for (ToggleButton toggleButton : boundToggleButtons) {
+            toggleButton.setChecked(newValue != null && ((Boolean) newValue).booleanValue());
+          }
+        }
+      };
+      if (Looper.myLooper() == Looper.getMainLooper()) {
+        notifyBoundControls.run();
+      } else {
+        new Handler(Looper.getMainLooper()).post(notifyBoundControls);
+      }
     }
   }
 
   public void bindToEditText(final Activity activity, int id, final String key) {
-    final EditText editText = (EditText) activity.findViewById(id);
+    synchronized (lock) {
+      final EditText editText = (EditText) activity.findViewById(id);
+      editText.setText((String) get(key));
 
-    editText.setText((String) get(key));
-
-    editText.addTextChangedListener(new TextWatcher() {
-      @Override
-      public void afterTextChanged(Editable s) {
-      }
-
-      @Override
-      public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-      }
-
-      @Override
-      public void onTextChanged(CharSequence s, int start, int before, int count) {
-        set(key, s.toString());
-      }
-    });
-
-    addListener(new ModelListener() {
-      @Override
-      public void onChanged(String key, final Object value) {
-        activity.runOnUiThread(new Runnable() {
-          public void run() {
-            editText.setText((String) value);
+      TextWatcher textWatcher = textWatchers.get(key);
+      if (textWatcher == null) {
+        textWatcher = new TextWatcher() {
+          @Override
+          public void afterTextChanged(Editable s) {
           }
-        });
+
+          @Override
+          public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+          }
+
+          @Override
+          public void onTextChanged(CharSequence s, int start, int before, int count) {
+            set(key, s.toString());
+          }
+        };
       }
-    });
+
+      editText.addTextChangedListener(textWatcher);
+      boundEditTexts.add(editText);
+    }
+  }
+
+  public void unbindEditText(final Activity activity, int id, String key) {
+    final EditText editText = (EditText) activity.findViewById(id);
+    editText.removeTextChangedListener(textWatchers.get(key));
+    boundEditTexts.remove(editText);
   }
 
   public void bindToToggleButton(final Activity activity, int id, final String key) {
     final ToggleButton toggleButton = (ToggleButton) activity.findViewById(id);
-
     Boolean on = (Boolean) get(key);
     toggleButton.setChecked(on != null && on.booleanValue());
-
     toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
       @Override
       public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         set(key, isChecked);
       }
     });
+    boundToggleButtons.add(toggleButton);
+  }
 
-    addListener(new ModelListener() {
+  public void unbindToggleButton(final Activity activity, int id) {
+    final ToggleButton toggleButton = (ToggleButton) activity.findViewById(id);
+    toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
       @Override
-      public void onChanged(String key, final Object value) {
-        activity.runOnUiThread(new Runnable() {
-          public void run() {
-            toggleButton.setChecked(value != null && ((Boolean) value).booleanValue());
-          }
-        });
+      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
       }
     });
+    boundToggleButtons.remove(toggleButton);
   }
 }
