@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import com.bklimt.candelabra.backbone.ModelListener;
 import com.bklimt.candelabra.models.HSVColor;
+import com.bklimt.candelabra.util.SingleItemQueue;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -15,11 +16,34 @@ import android.graphics.Paint.Style;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 public class EditColor extends View implements ModelListener {
+  private Rect drawingRect = new Rect();
+  private Point point = new Point();
+  private Paint paint = new Paint();
+  private Bitmap bitmap;
+
+  private int cx;
+  private int cy;
+  private int innerRadius;
+  private int outerRadius;
+
+  private Rect square = new Rect();
+
+  private boolean horizontal;
+
+  private HSVColor color = null;
+  private float hue = 0.0f;
+  private float saturation = 0.0f;
+  private float value = 1.0f;
+
+  private SingleItemQueue bitmapQueue = new SingleItemQueue("Bitmap Queue");
+
   public EditColor(Context context) {
     super(context);
     init();
@@ -37,7 +61,7 @@ public class EditColor extends View implements ModelListener {
 
   public void init() {
   }
-  
+
   public void setColor(HSVColor newColor) {
     if (color != null) {
       color.removeListener(this);
@@ -55,7 +79,7 @@ public class EditColor extends View implements ModelListener {
     }
     invalidate();
   }
-  
+
   public void onChanged(String key, Object newValue) {
     float[] hsv = { 0, 1, 1 };
     color.getHSV(hsv);
@@ -105,6 +129,7 @@ public class EditColor extends View implements ModelListener {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
+          updateBitmap(false);
           invalidate();
         }
         break;
@@ -118,6 +143,7 @@ public class EditColor extends View implements ModelListener {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
+          updateBitmap(false);
           invalidate();
         }
         break;
@@ -132,6 +158,10 @@ public class EditColor extends View implements ModelListener {
   }
 
   private boolean getColorAt(int x, int y, float[] hsv) {
+    return getColorAtBasedOn(x, y, hue, value, hsv);
+  }
+
+  private boolean getColorAtBasedOn(int x, int y, float hue, float value, float[] hsv) {
     int dx = x - cx;
     int dy = y - cy;
     int innerRadiusSquared = innerRadius * innerRadius;
@@ -207,47 +237,29 @@ public class EditColor extends View implements ModelListener {
     if (replaceBitmap) {
       bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
     }
-
-    new AsyncTask<Void, Void, Bitmap>() {
-      @Override
-      protected Bitmap doInBackground(Void... params) {
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+    
+    final float originalHue = hue;
+    final float originalValue = value;
+    
+    bitmapQueue.enqueue("BITMAP", new Runnable() {
+      public void run() {
+        final Bitmap newBitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
         float[] hsv = { 0.0f, 1.0f, 1.0f };
         for (int x = 0; x < width; x++) {
           for (int y = 0; y < height; y++) {
-            if (getColorAt(x, y, hsv)) {
-              bitmap.setPixel(x, y, HSVColor.getColor(hsv));
+            if (getColorAtBasedOn(x, y, originalHue, originalValue, hsv)) {
+              newBitmap.setPixel(x, y, HSVColor.getColor(hsv));
             }
           }
         }
-        return bitmap;
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+          public void run() {
+            bitmap = newBitmap;
+            EditColor.this.invalidate();
+            Logger.getLogger(getClass().getName()).info("Finished updating bitmap.");
+          }
+        });
       }
-
-      @Override
-      protected void onPostExecute(Bitmap newBitmap) {
-        bitmap = newBitmap;
-        EditColor.this.invalidate();
-        Logger.getLogger(getClass().getName()).info("Finished updating bitmap.");
-      }
-    }.execute();
+    });
   }
-  
-  private Rect drawingRect = new Rect();
-  private Point point = new Point();
-  private Paint paint = new Paint();
-  private Bitmap bitmap;
-
-  private int cx;
-  private int cy;
-  private int innerRadius;
-  private int outerRadius;
-
-  private Rect square = new Rect();
-
-  private boolean horizontal;
-
-  private HSVColor color = null;
-  private float hue = 0.0f;
-  private float saturation = 0.0f;
-  private float value = 1.0f;
 }

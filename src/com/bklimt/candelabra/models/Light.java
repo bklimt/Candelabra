@@ -20,7 +20,7 @@ public class Light extends Model {
       RootViewModel root = RootViewModel.get();
       final String ipAddress = root.getIpAddress();
       final String path = "/api/" + root.getUserName() + "/lights/" + getId() + "/state";
-  
+
       URL url;
       try {
         url = new URL("http", ipAddress, 80, path);
@@ -28,7 +28,7 @@ public class Light extends Model {
         Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to set light color.", e);
         return;
       }
-  
+
       JSONObject command = new JSONObject();
       try {
         command.put("hue", getColor().getHue());
@@ -38,11 +38,14 @@ public class Light extends Model {
         Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to set light color.", e);
         return;
       }
-  
+
       Http.getInstance().put("SET_LIGHT_" + getId(), url, command, new Callback<JSONArray>() {
         @Override
         public void callback(JSONArray result, final Exception e) {
-          Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to set light color.", e);
+          if (e != null) {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to set light color.",
+                e);
+          }
         }
       });
     }
@@ -53,7 +56,7 @@ public class Light extends Model {
   public void setDefaults() {
     set("color", new HSVColor());
   }
-  
+
   public HSVColor getColor() {
     return (HSVColor) get("color");
   }
@@ -73,15 +76,15 @@ public class Light extends Model {
   public void setName(String newName) {
     set("name", newName);
   }
-  
+
   public void applyPreset(Light preset) {
     getColor().setJSON(preset.getColor().toJSON());
   }
-  
+
   public void connect() {
     getColor().addListener(updater);
   }
-  
+
   public void disconnect() {
     getColor().removeListener(updater);
   }
