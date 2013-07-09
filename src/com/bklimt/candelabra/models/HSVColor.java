@@ -5,6 +5,12 @@ import com.bklimt.candelabra.backbone.Model;
 import android.graphics.Color;
 
 public class HSVColor extends Model {
+  public void setDefaults() {
+    setHue(0);
+    setSat(0);
+    setBri(255);
+  }
+  
   public static int getColor(float[] hsv) {
     int color = Color.HSVToColor(hsv);
     return (color != 0 ? color : ghettoColor(hsv));

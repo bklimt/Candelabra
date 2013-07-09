@@ -45,6 +45,7 @@ public class StartActivity extends Activity {
           // Disable the lights by default if we couldn't connect.
           RootViewModel root = RootViewModel.get();
           root.setEnabled(false);
+          root.createMockLights();
 
           log.log(Level.SEVERE, "Unable to fetch current lights.", error);
           StartActivity.this.runOnUiThread(new Runnable() {

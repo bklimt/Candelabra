@@ -111,6 +111,10 @@ public class RootViewModel extends Model {
     }
   }
 
+  public void createMockLights() {
+    getLights().createMockLights();
+  }
+  
   public void fetchCurrentLights(Callback<Boolean> callback) {
     getLights().fetchCurrentLights(callback);
   }

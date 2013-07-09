@@ -27,7 +27,18 @@ public class LightSet extends Collection<Light> {
   public void copy(LightSet other) {
     setJSON(other.toJSON());
   }
-
+  
+  public void createMockLights() {
+    this.clear();
+    for (int i = 1; i <= 3; ++i) {
+      Light light = new Light();
+      light.setId("" + i);
+      light.setName("Light " + i);
+      light.setOn(true);
+      add(light);
+    }
+  }
+  
   private void fetchLights(final Iterator<String> keys, final JSONObject object,
       final ArrayList<Light> toAdd, final ArrayList<Light> toRemove,
       final Callback<Boolean> callback) {
@@ -97,6 +108,7 @@ public class LightSet extends Collection<Light> {
       
       if (!root.isEnabled()) {
         callback.callback(true, null);
+        return;
       }
       
       String ipAddress = root.getIpAddress();
