@@ -28,7 +28,7 @@ public class LightFragment extends Fragment {
 
   public void setLight(Light newLight) {
     if (light != null) {
-      light.unbindToggleButton(getActivity(), R.id.on_button);
+      light.unbindToggleButton(getActivity(), R.id.on_button, "on");
     }
     
     light = newLight;

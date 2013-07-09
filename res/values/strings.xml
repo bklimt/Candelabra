@@ -6,6 +6,7 @@
     <string name="username">Username</string>
     <string name="device_type">Device Type</string>
     <string name="save">Save</string>
+    <string name="skip">Skip</string>
     <string name="setup">Setup</string>
     <string name="cancel">Cancel</string>
     <string name="light1">Light 1</string>

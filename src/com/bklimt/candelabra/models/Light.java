@@ -18,6 +18,11 @@ public class Light extends Model {
   private class Updater implements ModelListener {
     public void onChanged(String key, Object value) {
       RootViewModel root = RootViewModel.get();
+      
+      if (!root.isEnabled()) {
+        return;
+      }
+      
       final String ipAddress = root.getIpAddress();
       final String path = "/api/" + root.getUserName() + "/lights/" + getId() + "/state";
 

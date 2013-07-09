@@ -38,13 +38,22 @@ public class StartActivity extends Activity {
       return;
     }
 
+    root.setEnabled(true);
     root.fetchCurrentLights(new Callback<Boolean>() {
       public void callback(Boolean result, Exception error) {
         if (error != null) {
+          // Disable the lights by default if we couldn't connect.
+          RootViewModel root = RootViewModel.get();
+          root.setEnabled(false);
+
           log.log(Level.SEVERE, "Unable to fetch current lights.", error);
-          Toast toast = Toast.makeText(StartActivity.this, "Unable to fetch current lights.",
-              Toast.LENGTH_LONG);
-          toast.show();
+          StartActivity.this.runOnUiThread(new Runnable() {
+            public void run() {
+              Toast toast = Toast.makeText(StartActivity.this, "Unable to fetch current lights.",
+                  Toast.LENGTH_LONG);
+              toast.show();
+            }
+          });
         }
         startNextActivity(error == null);
       }

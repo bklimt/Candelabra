@@ -94,6 +94,11 @@ public class LightSet extends Collection<Light> {
   public void fetchCurrentLights(final Callback<Boolean> callback) {
     synchronized (lock) {
       RootViewModel root = RootViewModel.get();
+      
+      if (!root.isEnabled()) {
+        callback.callback(true, null);
+      }
+      
       String ipAddress = root.getIpAddress();
       URL url;
       try {

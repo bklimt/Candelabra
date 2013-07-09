@@ -18,11 +18,21 @@ public class RootViewModel extends Model {
   }
 
   public void setDefaults() {
+    set("enabled", true);
     set("ipAddress", "192.168.1.3");
     set("userName", "CandelabraUserName");
     set("deviceType", "CandelabraDeviceType");
     set("presets", new PresetSet());
     set("lights", new LightSet());
+  }
+  
+  public boolean isEnabled() {
+    Boolean enabled = (Boolean) get("enabled");
+    return enabled != null && enabled.booleanValue();
+  }
+  
+  public void setEnabled(boolean newEnabled) {
+    set("enabled", newEnabled);
   }
   
   public String getIpAddress() {

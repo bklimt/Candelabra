@@ -40,6 +40,7 @@ public class Http {
     String json = null;
     try {
       connection = (HttpURLConnection) url.openConnection();
+      connection.setConnectTimeout(1000);
       json = readFully(connection.getInputStream());
 
     } catch (IOException ioe) {

@@ -27,8 +27,8 @@ public abstract class Model {
   private HashMap<String, Object> attributes = new HashMap<String, Object>();
   private ArrayList<ModelListener> listeners = new ArrayList<ModelListener>();
 
-  private ArrayList<EditText> boundEditTexts = new ArrayList<EditText>();
-  private ArrayList<ToggleButton> boundToggleButtons = new ArrayList<ToggleButton>();
+  private HashMap<String, EditText> boundEditTexts = new HashMap<String, EditText>();
+  private HashMap<String, ToggleButton> boundToggleButtons = new HashMap<String, ToggleButton>();
 
   private HashMap<String, TextWatcher> textWatchers = new HashMap<String, TextWatcher>();
 
@@ -130,7 +130,7 @@ public abstract class Model {
     }
   }
 
-  protected void notifyChanged(String key, Object oldValue, final Object newValue) {
+  protected void notifyChanged(final String key, Object oldValue, final Object newValue) {
     synchronized (lock) {
       log.info("Firing change event for " + key + ": " + oldValue + " -> " + newValue);
       for (ModelListener listener : listeners) {
@@ -138,10 +138,12 @@ public abstract class Model {
       }
       Runnable notifyBoundControls = new Runnable() {
         public void run() {
-          for (EditText editText : boundEditTexts) {
+          EditText editText = boundEditTexts.get(key);
+          if (editText != null) {
             editText.setText((String) newValue);
           }
-          for (ToggleButton toggleButton : boundToggleButtons) {
+          ToggleButton toggleButton = boundToggleButtons.get(key);
+          if (toggleButton != null) {
             toggleButton.setChecked(newValue != null && ((Boolean) newValue).booleanValue());
           }
         }
@@ -178,7 +180,7 @@ public abstract class Model {
       }
 
       editText.addTextChangedListener(textWatcher);
-      boundEditTexts.add(editText);
+      boundEditTexts.put(key, editText);
     }
   }
 
@@ -198,16 +200,16 @@ public abstract class Model {
         set(key, isChecked);
       }
     });
-    boundToggleButtons.add(toggleButton);
+    boundToggleButtons.put(key, toggleButton);
   }
 
-  public void unbindToggleButton(final Activity activity, int id) {
+  public void unbindToggleButton(final Activity activity, int id, String key) {
     final ToggleButton toggleButton = (ToggleButton) activity.findViewById(id);
     toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
       @Override
       public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
       }
     });
-    boundToggleButtons.remove(toggleButton);
+    boundToggleButtons.remove(key);
   }
 }

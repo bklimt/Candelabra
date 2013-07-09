@@ -23,6 +23,9 @@ import android.widget.Button;
 import android.widget.Toast;
 
 public class SetupActivity extends Activity {
+  private Button saveButton;
+  private Button skipButton;
+  
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.setup);
@@ -31,46 +34,66 @@ public class SetupActivity extends Activity {
     RootViewModel.get().bindToEditText(this, R.id.user_name_edit, "userName");
     RootViewModel.get().bindToEditText(this, R.id.device_type_edit, "deviceType");
 
-    final Button saveButton = (Button) findViewById(R.id.save_button);
+    saveButton = (Button) findViewById(R.id.save_button);
+    skipButton = (Button) findViewById(R.id.skip_button);
+    
     saveButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        saveButton.setEnabled(false);
-
-        RootViewModel root = RootViewModel.get();
-        root.saveDeviceSettings(SetupActivity.this);
-
-        JSONObject command = new JSONObject();
-        try {
-          command.put("username", root.getUserName());
-          command.put("devicetype", root.getDeviceType());
-        } catch (JSONException je) {
-          saveFinished(saveButton, je);
-          return;
-        }
-
-        URL url;
-        try {
-          url = new URL("http", root.getIpAddress(), 80, "/api");
-        } catch (MalformedURLException mue) {
-          saveFinished(saveButton, mue);
-          return;
-        }
-
-        Http.getInstance().post(null, url, command, new Callback<JSONArray>() {
-          @Override
-          public void callback(JSONArray result, Exception error) {
-            saveFinished(saveButton, error);
-          }
-        });
+        onSaveClicked();
       }
     });
+    
+    skipButton.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        onSkipClicked();
+      }
+    });
+  }
+
+  private void onSaveClicked() {
+    saveButton.setEnabled(false);
+    skipButton.setEnabled(false);
+
+    RootViewModel root = RootViewModel.get();
+    root.setEnabled(true);
+    root.saveDeviceSettings(SetupActivity.this);
+
+    JSONObject command = new JSONObject();
+    try {
+      command.put("username", root.getUserName());
+      command.put("devicetype", root.getDeviceType());
+    } catch (JSONException je) {
+      saveFinished(saveButton, je);
+      return;
+    }
+
+    URL url;
+    try {
+      url = new URL("http", root.getIpAddress(), 80, "/api");
+    } catch (MalformedURLException mue) {
+      saveFinished(saveButton, mue);
+      return;
+    }
+
+    Http.getInstance().post(null, url, command, new Callback<JSONArray>() {
+      @Override
+      public void callback(JSONArray result, Exception error) {
+        saveFinished(saveButton, error);
+      }
+    });
+  }
+  
+  private void onSkipClicked() {
+    startActivity(new Intent(SetupActivity.this, LightsActivity.class));
   }
 
   private void saveFinished(final Button saveButton, final Exception error) {
     runOnUiThread(new Runnable() {
       public void run() {
         saveButton.setEnabled(true);
+        skipButton.setEnabled(true);
         if (error == null) {
           startActivity(new Intent(SetupActivity.this, LightsActivity.class));
         } else {
