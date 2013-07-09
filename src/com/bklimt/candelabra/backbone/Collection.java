@@ -91,12 +91,10 @@ public abstract class Collection<T extends Model> {
   
   public void clear() {
     synchronized (lock) {
-      each(new Visitor<T>() {
-        @Override
-        public void visit(T model) {
-          remove(model);
-        }
-      });
+      final ArrayList<T> toRemove = new ArrayList<T>(items);
+      for (T item : toRemove) {
+        remove(item);
+      }
     }
   }
   

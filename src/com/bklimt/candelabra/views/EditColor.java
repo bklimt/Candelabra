@@ -128,7 +128,7 @@ public class EditColor extends View implements ModelListener {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
-          updateBitmap(false);
+          // updateBitmap(false);
           invalidate();
         }
         break;
@@ -142,7 +142,7 @@ public class EditColor extends View implements ModelListener {
           hue = hsv[0];
           saturation = hsv[1];
           value = hsv[2];
-          updateBitmap(false);
+          // updateBitmap(false);
           invalidate();
         }
         break;

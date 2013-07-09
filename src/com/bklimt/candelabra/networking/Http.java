@@ -76,6 +76,7 @@ public class Http {
     String json = null;
     try {
       connection = (HttpURLConnection) url.openConnection();
+      connection.setConnectTimeout(1000);
       connection.setDoOutput(true);
       if (method != null) {
         connection.setRequestMethod(method);
