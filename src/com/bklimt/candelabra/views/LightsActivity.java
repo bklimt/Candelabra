@@ -98,9 +98,19 @@ public class LightsActivity extends Activity implements CollectionListener<Light
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
+  public boolean onCreateOptionsMenu(final Menu menu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.lights, menu);
+
+    menu.findItem(R.id.warning).setVisible(!RootViewModel.get().isEnabled());
+
+    RootViewModel.get().addListener(new ModelListener() {
+      @Override
+      public void onChanged(String key, Object value) {
+        menu.findItem(R.id.warning).setVisible(!RootViewModel.get().isEnabled());
+      }
+    });
+
     return true;
   }
 
