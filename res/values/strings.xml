@@ -8,6 +8,7 @@
     <string name="device_type">Device Type</string>
     <string name="save">Save</string>
     <string name="delete">Delete</string>
+    <string name="delete_preset">Delete preset?</string>
     <string name="skip">Skip</string>
     <string name="setup">Setup</string>
     <string name="cancel">Cancel</string>

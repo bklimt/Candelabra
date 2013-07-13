@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 public class LightFragment extends Fragment {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View view = inflater.inflate(R.layout.light, container);
+    View view = inflater.inflate(R.layout.fragment_light, container);
 
     colorView = (ColorView) view.findViewById(R.id.color);
     colorEdit = (EditColor) view.findViewById(R.id.color_edit);

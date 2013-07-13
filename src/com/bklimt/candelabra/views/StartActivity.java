@@ -17,7 +17,7 @@ import com.bklimt.candelabra.util.Callback;
 public class StartActivity extends Activity {
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.start);
+    setContentView(R.layout.activity_start);
 
     ParseAnalytics.trackAppOpened(getIntent());
     RootViewModel root = RootViewModel.get();

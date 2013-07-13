@@ -10,6 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         class="com.bklimt.candelabra.views.LightFragment"
-        tools:layout="@layout/light" />
+        tools:layout="@layout/fragment_light" />
 
 </LinearLayout>

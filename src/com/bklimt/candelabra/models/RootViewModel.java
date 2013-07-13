@@ -153,4 +153,9 @@ public class RootViewModel extends Model {
     preset.getLights().setJSON(getLights().toJSON());
     saveDeviceSettings(activity);
   }
+
+  public void deletePreset(Activity activity, Preset preset) {
+    getPresets().remove(preset);
+    saveDeviceSettings(activity);
+  }
 }

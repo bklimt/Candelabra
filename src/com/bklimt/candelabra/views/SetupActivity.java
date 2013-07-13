@@ -28,7 +28,7 @@ public class SetupActivity extends Activity {
   
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.setup);
+    setContentView(R.layout.activity_setup);
 
     RootViewModel.get().bindToEditText(this, R.id.ip_address_edit, "ipAddress");
     RootViewModel.get().bindToEditText(this, R.id.user_name_edit, "userName");

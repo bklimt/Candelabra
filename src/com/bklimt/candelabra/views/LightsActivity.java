@@ -31,7 +31,7 @@ public class LightsActivity extends Activity implements CollectionListener<Light
   
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.lights);
+    setContentView(R.layout.activity_lights);
 
     final ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -97,10 +97,10 @@ public class LightsActivity extends Activity implements CollectionListener<Light
   private void showSaveDialog() {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.save_preset);
-    
+
     final EditText editText = new EditText(this);
     builder.setView(editText);
-    
+
     builder.setPositiveButton(R.string.save, new OnClickListener() {
       @Override
       public void onClick(final DialogInterface dialog, int which) {
