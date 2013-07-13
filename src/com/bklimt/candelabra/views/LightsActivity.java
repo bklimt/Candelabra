@@ -8,7 +8,6 @@ import com.bklimt.candelabra.backbone.ModelListener;
 import com.bklimt.candelabra.backbone.Visitor;
 import com.bklimt.candelabra.models.Light;
 import com.bklimt.candelabra.models.LightSet;
-import com.bklimt.candelabra.models.Preset;
 import com.bklimt.candelabra.models.RootViewModel;
 import com.bklimt.candelabra.util.Callback;
 
@@ -25,12 +24,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.Spinner;
 
 public class LightsActivity extends Activity implements CollectionListener<Light> {
   private Logger log = Logger.getLogger(getClass().getName());
@@ -38,50 +32,6 @@ public class LightsActivity extends Activity implements CollectionListener<Light
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.lights);
-
-    Spinner presetsSpinner = (Spinner) findViewById(R.id.presets_spinner);
-    final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-        android.R.layout.simple_list_item_1);
-    presetsSpinner.setAdapter(adapter);
-
-    adapter.add("");
-    
-    RootViewModel.get().getPresets().each(new Visitor<Preset>() {
-      @Override
-      public void visit(Preset preset) {
-        adapter.add(preset.getName());
-      }
-    });
-    
-    RootViewModel.get().getPresets().addListener(new CollectionListener<Preset>() {
-      @Override
-      public void onAdd(Preset preset) {
-        adapter.add(preset.getName());
-      }
-
-      @Override
-      public void onRemove(Preset preset) {
-      }
-    });
-
-    presetsSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-      @Override
-      public void onItemSelected(AdapterView<?> arg0, View arg1, int index, long arg3) {
-        String presetName = adapter.getItem(index);
-        if (presetName.equals("")) {
-          return;
-        }
-        
-        RootViewModel root = RootViewModel.get();
-        Preset preset = root.getPresets().findById(presetName);
-        log.info("Selected preset " + preset.getName());
-        RootViewModel.get().applyPreset(preset);
-      }
-
-      @Override
-      public void onNothingSelected(AdapterView<?> arg0) {
-      }
-    });
 
     final ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -123,6 +73,10 @@ public class LightsActivity extends Activity implements CollectionListener<Light
       }
       case R.id.save: {
         showSaveDialog();
+        return true;
+      }
+      case R.id.open: {
+        startActivity(new Intent(this, PresetListActivity.class));
         return true;
       }
     }

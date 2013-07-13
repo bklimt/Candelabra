@@ -4,16 +4,17 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="13" android:targetSdkVersion="17"/>
+    <uses-sdk
+        android:minSdkVersion="13"
+        android:targetSdkVersion="17" />
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name=".CandelabraApplication"
+        android:name="com.bklimt.candelabra.CandelabraApplication"
+        android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
-        android:allowBackup="true" >
-
+        android:label="@string/app_name" >
         <activity
             android:name="com.bklimt.candelabra.views.StartActivity"
             android:label="@string/app_name"
@@ -23,17 +24,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="com.bklimt.candelabra.views.SetupActivity"
-            android:noHistory="true"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:noHistory="true" >
             <intent-filter>
                 <action android:name="candelabra.intent.action.SETUP" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="com.bklimt.candelabra.views.LightsActivity"
             android:label="@string/app_name" >
@@ -42,5 +41,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.bklimt.candelabra.views.PresetListActivity"
+            android:label="@string/title_activity_preset_list" >
+        </activity>
     </application>
+
 </manifest>

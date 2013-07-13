@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">Candelabra</string>
     <string name="loading">Loading&#8230;</string>
     <string name="ip_address">IP Address</string>
     <string name="username">Username</string>
     <string name="device_type">Device Type</string>
     <string name="save">Save</string>
+    <string name="delete">Delete</string>
     <string name="skip">Skip</string>
     <string name="setup">Setup</string>
     <string name="cancel">Cancel</string>
     <string name="light1">Light 1</string>
     <string name="light2">Light 2</string>
     <string name="light3">Light 3</string>
+    <string name="open_preset">Open Preset</string>
     <string name="save_preset">Save Preset</string>
     <string name="overwrite_preset">Overwrite existing preset?</string>
     <string name="disconnected">Disconnected</string>
+    <string name="title_activity_preset_list">Presets</string>
+
 </resources>

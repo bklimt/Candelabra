@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <item android:id="@+id/warning" android:title="@string/disconnected" android:visible="false" android:showAsAction="always" android:icon="@drawable/alerts_and_states_warning"></item><item
+    <item
+        android:id="@+id/warning"
+        android:icon="@drawable/alerts_and_states_warning"
+        android:showAsAction="always"
+        android:title="@string/disconnected"
+        android:visible="false">
+    </item>
+    <item
+        android:id="@+id/open"
+        android:icon="@drawable/collections_collection"
+        android:showAsAction="always"
+        android:title="@string/open_preset">
+    </item>
+    <item
         android:id="@+id/save"
         android:icon="@drawable/content_save"
         android:showAsAction="always"
-        android:title="@string/save">
+        android:title="@string/save_preset">
     </item>
     <item
         android:id="@+id/setup"
@@ -13,6 +26,5 @@
         android:showAsAction="always"
         android:title="@string/setup">
     </item>
-    
 
 </menu>

@@ -5,11 +5,6 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <Spinner
-        android:id="@+id/presets_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
     <fragment
         android:id="@+id/light"
         android:layout_width="match_parent"
