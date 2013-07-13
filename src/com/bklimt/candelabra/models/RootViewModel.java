@@ -1,5 +1,7 @@
 package com.bklimt.candelabra.models;
 
+import java.util.logging.Logger;
+
 import org.json.JSONObject;
 
 import com.bklimt.candelabra.backbone.Model;
@@ -17,24 +19,26 @@ public class RootViewModel extends Model {
     return model;
   }
 
+  private Logger log = Logger.getLogger(getClass().getName());
+
   public void setDefaults() {
     set("enabled", true);
-    set("ipAddress", "192.168.1.3");
+    set("ipAddress", "192.168.1.1");
     set("userName", "CandelabraUserName");
     set("deviceType", "CandelabraDeviceType");
     set("presets", new PresetSet());
     set("lights", new LightSet());
   }
-  
+
   public boolean isEnabled() {
     Boolean enabled = (Boolean) get("enabled");
     return enabled != null && enabled.booleanValue();
   }
-  
+
   public void setEnabled(boolean newEnabled) {
     set("enabled", newEnabled);
   }
-  
+
   public String getIpAddress() {
     return (String) get("ipAddress");
   }
@@ -54,7 +58,7 @@ public class RootViewModel extends Model {
   public String getDeviceType() {
     return (String) get("deviceType");
   }
-  
+
   public void setDeviceType(String newDeviceType) {
     set("deviceType", newDeviceType);
   }
@@ -66,7 +70,7 @@ public class RootViewModel extends Model {
   public PresetSet getPresets() {
     return (PresetSet) get("presets");
   }
-  
+
   public void createDefaultPresets() {
     getPresets().clear();
 
@@ -104,8 +108,10 @@ public class RootViewModel extends Model {
   }
 
   public void fetchDeviceSettings(Activity activity) throws Exception {
-    SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
-    setJSON(new JSONObject(preferences.getString("json", "{}")));
+    SharedPreferences preferences = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+    String preferencesJSON = preferences.getString("json", "{}");
+    log.info("Loading preferences: " + preferencesJSON);
+    setJSON(new JSONObject(preferencesJSON));
     if (getPresets().size() == 0) {
       createDefaultPresets();
     }
@@ -114,30 +120,33 @@ public class RootViewModel extends Model {
   public void createMockLights() {
     getLights().createMockLights();
   }
-  
+
   public void fetchCurrentLights(Callback<Boolean> callback) {
     getLights().fetchCurrentLights(callback);
   }
 
   public void saveDeviceSettings(Activity activity) {
-    SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
+    SharedPreferences preferences = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+    String preferencesJSON = toJSON().toString();
+    log.info("Saving preferences: " + preferencesJSON);
     Editor editor = preferences.edit();
-    editor.putString("json", toJSON().toString());
+    editor.clear();
+    editor.putString("json", preferencesJSON);
     editor.commit();
   }
-  
+
   public void applyPreset(Preset preset) {
     getLights().applyPreset(preset.getLights());
   }
-  
+
   public void savePreset(Activity activity, String name) {
     Preset preset = getPresets().findById(name);
     if (preset == null) {
       preset = new Preset();
       preset.setName(name);
-      preset.getLights().setJSON(getLights().toJSON());
+      getPresets().add(preset);
     }
-    getPresets().add(preset);
+    preset.getLights().setJSON(getLights().toJSON());
     saveDeviceSettings(activity);
   }
 }

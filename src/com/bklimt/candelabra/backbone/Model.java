@@ -140,7 +140,9 @@ public abstract class Model {
         public void run() {
           EditText editText = boundEditTexts.get(key);
           if (editText != null) {
-            editText.setText((String) newValue);
+            if (!editText.getText().toString().equals(newValue)) {
+              editText.setText((String) newValue);
+            }
           }
           ToggleButton toggleButton = boundToggleButtons.get(key);
           if (toggleButton != null) {
