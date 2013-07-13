@@ -111,7 +111,9 @@ public class RootViewModel extends Model {
     SharedPreferences preferences = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
     String preferencesJSON = preferences.getString("json", "{}");
     log.info("Loading preferences: " + preferencesJSON);
-    setJSON(new JSONObject(preferencesJSON));
+    JSONObject preferencesObject = new JSONObject(preferencesJSON);
+    preferencesObject.remove("lights");
+    setJSON(preferencesObject);
     if (getPresets().size() == 0) {
       createDefaultPresets();
     }
@@ -127,7 +129,9 @@ public class RootViewModel extends Model {
 
   public void saveDeviceSettings(Activity activity) {
     SharedPreferences preferences = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
-    String preferencesJSON = toJSON().toString();
+    JSONObject preferencesObject = toJSON();
+    preferencesObject.remove("lights");
+    String preferencesJSON = preferencesObject.toString();
     log.info("Saving preferences: " + preferencesJSON);
     Editor editor = preferences.edit();
     editor.clear();
