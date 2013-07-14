@@ -16,10 +16,13 @@ import com.bklimt.candelabra.util.Callback;
 
 public class Light extends Model {
   private class Updater implements ModelListener {
+    private Logger log = Logger.getLogger(getClass().getName());
+    
     public void onChanged(String key, Object value) {
       RootViewModel root = RootViewModel.get();
 
       if (!root.isEnabled()) {
+        log.info("Skipping sending network command to light.");
         return;
       }
 

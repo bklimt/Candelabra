@@ -1,13 +1,17 @@
 package com.bklimt.candelabra.models;
 
+import java.io.InputStream;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.bklimt.candelabra.R;
 import com.bklimt.candelabra.backbone.Model;
+import com.bklimt.candelabra.networking.Http;
 import com.bklimt.candelabra.util.Callback;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -71,51 +75,28 @@ public class RootViewModel extends Model {
     return (PresetSet) get("presets");
   }
 
-  public void createDefaultPresets() {
+  public void createDefaultPresets(Context context) {
     getPresets().clear();
 
-    Preset allWhite = new Preset();
-    allWhite.setName("All White");
-
-    Light light1 = new Light();
-    light1.setId("1");
-    light1.setName("Light 0");
-    light1.setOn(true);
-    light1.getColor().setHue(0);
-    light1.getColor().setBri(255);
-    light1.getColor().setSat(0);
-    allWhite.getLights().add(light1);
-
-    Light light2 = new Light();
-    light2.setId("2");
-    light2.setName("Light 1");
-    light2.setOn(true);
-    light2.getColor().setHue(0);
-    light2.getColor().setBri(255);
-    light2.getColor().setSat(0);
-    allWhite.getLights().add(light2);
-
-    Light light3 = new Light();
-    light3.setId("3");
-    light3.setName("Light 2");
-    light3.setOn(true);
-    light3.getColor().setHue(0);
-    light3.getColor().setBri(255);
-    light3.getColor().setSat(0);
-    allWhite.getLights().add(light3);
-
-    getPresets().add(allWhite);
+    try {
+      InputStream jsonStream = context.getResources().openRawResource(R.raw.default_presets);
+      String json = Http.readFully(jsonStream);
+      JSONArray presetJSON = new JSONArray(json);
+      getPresets().setJSON(presetJSON);
+    } catch (Exception e) {
+      log.log(Level.SEVERE, "Unable to read default presets.", e);
+    }
   }
 
-  public void fetchDeviceSettings(Activity activity) throws Exception {
-    SharedPreferences preferences = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+  public void fetchDeviceSettings(Context context) throws Exception {
+    SharedPreferences preferences = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
     String preferencesJSON = preferences.getString("json", "{}");
     log.info("Loading preferences: " + preferencesJSON);
     JSONObject preferencesObject = new JSONObject(preferencesJSON);
     preferencesObject.remove("lights");
     setJSON(preferencesObject);
     if (getPresets().size() == 0) {
-      createDefaultPresets();
+      createDefaultPresets(context);
     }
   }
 
