@@ -26,6 +26,10 @@ public class LightFragment extends Fragment {
     return view;
   }
 
+  public Light getLight() {
+    return light;
+  }
+  
   public void setLight(Light newLight) {
     if (light != null) {
       light.unbindToggleButton(getActivity(), R.id.on_button, "on");

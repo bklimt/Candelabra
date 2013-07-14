@@ -127,8 +127,8 @@ public class RootViewModel extends Model {
     getLights().fetchCurrentLights(callback);
   }
 
-  public void saveDeviceSettings(Activity activity) {
-    SharedPreferences preferences = activity.getSharedPreferences("prefs", Context.MODE_PRIVATE);
+  public void saveDeviceSettings(Context context) {
+    SharedPreferences preferences = context.getSharedPreferences("prefs", Context.MODE_PRIVATE);
     JSONObject preferencesObject = toJSON();
     preferencesObject.remove("lights");
     String preferencesJSON = preferencesObject.toString();
@@ -143,7 +143,7 @@ public class RootViewModel extends Model {
     getLights().applyPreset(preset.getLights());
   }
 
-  public void savePreset(Activity activity, String name) {
+  public void savePreset(Context context, String name) {
     Preset preset = getPresets().findById(name);
     if (preset == null) {
       preset = new Preset();
@@ -151,11 +151,11 @@ public class RootViewModel extends Model {
       getPresets().add(preset);
     }
     preset.getLights().setJSON(getLights().toJSON());
-    saveDeviceSettings(activity);
+    saveDeviceSettings(context);
   }
 
-  public void deletePreset(Activity activity, Preset preset) {
+  public void deletePreset(Context context, Preset preset) {
     getPresets().remove(preset);
-    saveDeviceSettings(activity);
+    saveDeviceSettings(context);
   }
 }

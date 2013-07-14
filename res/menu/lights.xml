@@ -21,9 +21,13 @@
         android:title="@string/save_preset">
     </item>
     <item
+        android:id="@+id/rename_light"
+        android:icon="@drawable/content_edit"
+        android:title="@string/rename_light">
+    </item>
+    <item
         android:id="@+id/setup"
         android:icon="@drawable/action_settings"
-        android:showAsAction="always"
         android:title="@string/setup">
     </item>
 

@@ -24,17 +24,17 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.EditText;
 
 public class LightsActivity extends Activity implements CollectionListener<Light> {
   private Logger log = Logger.getLogger(getClass().getName());
-  
+
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_lights);
 
     final ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+
     LightSet lights = RootViewModel.get().getLights();
     log.info("Adding tabs for all " + lights.size() + " lights.");
     lights.each(new Visitor<Light>() {
@@ -79,6 +79,10 @@ public class LightsActivity extends Activity implements CollectionListener<Light
         startActivity(new Intent(this, PresetListActivity.class));
         return true;
       }
+      case R.id.rename_light: {
+        showRenameLightDialog();
+        return true;
+      }
     }
     return false;
   }
@@ -95,43 +99,38 @@ public class LightsActivity extends Activity implements CollectionListener<Light
   }
 
   private void showSaveDialog() {
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    builder.setTitle(R.string.save_preset);
-
-    final EditText editText = new EditText(this);
-    builder.setView(editText);
-
-    builder.setPositiveButton(R.string.save, new OnClickListener() {
+    final PromptDialog saveDialog = new PromptDialog();
+    saveDialog.setTitleText(R.string.save_preset);
+    saveDialog.setPositiveText(R.string.save);
+    saveDialog.setNegativeText(R.string.cancel);
+    saveDialog.show(this, new Callback<DialogInterface>() {
       @Override
-      public void onClick(final DialogInterface dialog, int which) {
-        final String name = editText.getText().toString().trim();
-        if (name.length() > 0) {
-          if (RootViewModel.get().getPresets().findById(name) == null) {
-            RootViewModel.get().savePreset(LightsActivity.this, name);
-            dialog.dismiss();
-            return;
-          }
-          confirmOverwrite(new Callback<Boolean>() {
-            @Override
-            public void callback(Boolean result, Exception error) {
-              if (Boolean.TRUE.equals(result)) {
-                RootViewModel.get().savePreset(LightsActivity.this, name);
-                dialog.dismiss();
-              }
-            }
-          });
+      public void callback(final DialogInterface dialog, Exception error) {
+        if (saveDialog.getText() == null) {
+          dialog.dismiss();
+          return;
         }
+
+        final String name = saveDialog.getText();
+        if (RootViewModel.get().getPresets().findById(name) == null) {
+          RootViewModel.get().savePreset(LightsActivity.this, name);
+          dialog.dismiss();
+          return;
+        }
+
+        confirmOverwrite(new Callback<Boolean>() {
+          @Override
+          public void callback(Boolean result, Exception error) {
+            if (Boolean.TRUE.equals(result)) {
+              RootViewModel.get().savePreset(LightsActivity.this, name);
+              dialog.dismiss();
+            }
+          }
+        });
       }
     });
-    builder.setNegativeButton(R.string.cancel, new OnClickListener() {
-      @Override
-      public void onClick(DialogInterface dialog, int which) {
-        dialog.dismiss();
-      }
-    });
-    builder.show();
   }
-  
+
   private void confirmOverwrite(final Callback<Boolean> callback) {
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.overwrite_preset);
@@ -151,7 +150,33 @@ public class LightsActivity extends Activity implements CollectionListener<Light
     });
     builder.show();
   }
-  
+
+  private void showRenameLightDialog() {
+    LightFragment fragment = (LightFragment) getFragmentManager().findFragmentById(R.id.light);
+    final Light light = fragment.getLight();
+    
+    final PromptDialog renameDialog = new PromptDialog();
+    renameDialog.setTitleText(R.string.rename_light);
+    renameDialog.setPositiveText(R.string.save);
+    renameDialog.setNegativeText(R.string.cancel);
+    renameDialog.setText(light.getName());
+    renameDialog.show(this, new Callback<DialogInterface>() {
+      @Override
+      public void callback(final DialogInterface dialog, Exception error) {
+        if (renameDialog.getText() == null) {
+          dialog.dismiss();
+          return;
+        }
+        String newName = renameDialog.getText();
+        if (newName.length() > 32) {
+          newName = newName.substring(0, 32);
+        }
+        light.setName(newName);
+        dialog.dismiss();
+      }
+    });
+  }
+
   private void addLight(final Light light) {
     runOnUiThread(new Runnable() {
       public void run() {
@@ -159,7 +184,7 @@ public class LightsActivity extends Activity implements CollectionListener<Light
         ActionBar actionBar = getActionBar();
         final Tab tab = actionBar.newTab();
         tab.setText(light.getName());
-        
+
         light.addListener(new ModelListener() {
           @Override
           public void onChanged(String key, Object value) {
@@ -168,7 +193,7 @@ public class LightsActivity extends Activity implements CollectionListener<Light
             }
           }
         });
-        
+
         tab.setTabListener(new TabListener() {
           @Override
           public void onTabReselected(Tab tab, FragmentTransaction ft) {
@@ -191,6 +216,7 @@ public class LightsActivity extends Activity implements CollectionListener<Light
             log.info("Unselected tab for light " + light.getId() + " " + light.getName());
           }
         });
+
         actionBar.addTab(tab);
       }
     });

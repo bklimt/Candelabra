@@ -15,8 +15,9 @@
     <string name="light1">Light 1</string>
     <string name="light2">Light 2</string>
     <string name="light3">Light 3</string>
-    <string name="open_preset">Open Preset</string>
-    <string name="save_preset">Save Preset</string>
+    <string name="open_preset">Open preset</string>
+    <string name="save_preset">Save preset</string>
+    <string name="rename_light">Rename light</string>
     <string name="overwrite_preset">Overwrite existing preset?</string>
     <string name="disconnected">Disconnected</string>
     <string name="title_activity_preset_list">Presets</string>
