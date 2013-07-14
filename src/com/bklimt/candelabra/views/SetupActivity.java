@@ -77,8 +77,6 @@ public class SetupActivity extends Activity {
       return;
     }
 
-    // TODO(klimt): Refetch the current lights.
-    
     Http.getInstance().post(null, url, command, new Callback<JSONArray>() {
       @Override
       public void callback(JSONArray result, Exception error) {
