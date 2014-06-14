@@ -7,10 +7,11 @@ import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import bolts.Task;
+
 import com.bklimt.candelabra.R;
 import com.bklimt.candelabra.backbone.Model;
 import com.bklimt.candelabra.networking.Http;
-import com.bklimt.candelabra.util.Callback;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -104,8 +105,8 @@ public class RootViewModel extends Model {
     getLights().createMockLights();
   }
 
-  public void fetchCurrentLights(Callback<Boolean> callback) {
-    getLights().fetchCurrentLights(callback);
+  public Task<Boolean> fetchCurrentLights() {
+    return getLights().fetchCurrentLights();
   }
 
   public void saveDeviceSettings(Context context) {

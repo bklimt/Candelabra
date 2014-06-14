@@ -4,20 +4,17 @@
     <item
         android:id="@+id/warning"
         android:icon="@drawable/alerts_and_states_warning"
-        android:showAsAction="always"
         android:title="@string/disconnected"
         android:visible="false">
     </item>
     <item
         android:id="@+id/open"
         android:icon="@drawable/collections_collection"
-        android:showAsAction="always"
         android:title="@string/open_preset">
     </item>
     <item
         android:id="@+id/save"
         android:icon="@drawable/content_save"
-        android:showAsAction="always"
         android:title="@string/save_preset">
     </item>
     <item

@@ -7,12 +7,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+import bolts.Continuation;
+import bolts.Task;
 
 import com.parse.ParseAnalytics;
 
 import com.bklimt.candelabra.R;
 import com.bklimt.candelabra.models.RootViewModel;
-import com.bklimt.candelabra.util.Callback;
 
 public class StartActivity extends Activity {
   public void onCreate(Bundle savedInstanceState) {
@@ -39,8 +40,10 @@ public class StartActivity extends Activity {
     }
 
     root.setEnabled(true);
-    root.fetchCurrentLights(new Callback<Boolean>() {
-      public void callback(Boolean result, Exception error) {
+    root.fetchCurrentLights().continueWith(new Continuation<Boolean, Void>() {
+      @Override
+      public Void then(Task<Boolean> task) throws Exception {
+        Exception error = task.getError();
         if (error != null) {
           // Disable the lights by default if we couldn't connect.
           RootViewModel root = RootViewModel.get();
@@ -57,8 +60,9 @@ public class StartActivity extends Activity {
           });
         }
         startNextActivity(error == null);
+        return null;
       }
-    });
+    });    
   }
 
   private void startNextActivity(boolean setup) {

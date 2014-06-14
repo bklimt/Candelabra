@@ -11,10 +11,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import bolts.Continuation;
+import bolts.Task;
+
 import com.bklimt.candelabra.backbone.Collection;
 import com.bklimt.candelabra.backbone.Visitor;
 import com.bklimt.candelabra.networking.Http;
-import com.bklimt.candelabra.util.Callback;
 
 public class LightSet extends Collection<Light> {
   public LightSet() {
@@ -39,12 +41,10 @@ public class LightSet extends Collection<Light> {
     }
   }
   
-  private void fetchLights(final Iterator<String> keys, final JSONObject object,
-      final ArrayList<Light> toAdd, final ArrayList<Light> toRemove,
-      final Callback<Boolean> callback) {
+  private Task<Boolean> fetchLights(final Iterator<String> keys, final JSONObject object,
+      final ArrayList<Light> toAdd, final ArrayList<Light> toRemove) {
     if (!keys.hasNext()) {
-      callback.callback(Boolean.TRUE, null);
-      return;
+      return Task.forResult(true);
     }
 
     String key = keys.next();
@@ -62,8 +62,7 @@ public class LightSet extends Collection<Light> {
       value = object.getJSONObject(key);
       name = value.getString("name");
     } catch (JSONException e) {
-      callback.callback(false, e);
-      return;
+      return Task.forResult(false);
     }
     light.setId(key);
     light.setName(name);
@@ -77,38 +76,30 @@ public class LightSet extends Collection<Light> {
     try {
       lightURL = new URL("http", ipAddress, 80, "/api/" + userName + "/lights/" + light.getId());
     } catch (MalformedURLException e) {
-      callback.callback(null, e);
-      return;
+      return Task.forError(e);
     }
-    Http.getInstance().get(null, lightURL, new Callback<JSONObject>() {
-      public void callback(JSONObject lightObject, Exception error) {
-        if (lightObject == null) {
-          callback.callback(null, error);
-          return;
-        }
-        try {
-          JSONObject state = lightObject.getJSONObject("state");
-          finalLight.setOn(state.getBoolean("on"));
-          finalLight.getColor().setHue(state.getInt("hue"));
-          finalLight.getColor().setSat(state.getInt("sat"));
-          finalLight.getColor().setBri(state.getInt("bri"));
-        } catch (JSONException e) {
-          callback.callback(null, e);
-          return;
-        }
+    Task<JSONObject> task = Http.getInstance().get(null, lightURL);
+    return task.onSuccessTask(new Continuation<JSONObject, Task<Boolean>>() {
+      @Override
+      public Task<Boolean> then(Task<JSONObject> task) throws Exception {
+        JSONObject lightObject = task.getResult();
+        JSONObject state = lightObject.getJSONObject("state");
+        finalLight.setOn(state.getBoolean("on"));
+        finalLight.getColor().setHue(state.getInt("hue"));
+        finalLight.getColor().setSat(state.getInt("sat"));
+        finalLight.getColor().setBri(state.getInt("bri"));
 
-        fetchLights(keys, object, toAdd, toRemove, callback);
+        return fetchLights(keys, object, toAdd, toRemove);
       }
     });
   }
 
-  public void fetchCurrentLights(final Callback<Boolean> callback) {
+  public Task<Boolean> fetchCurrentLights() {
     synchronized (lock) {
       RootViewModel root = RootViewModel.get();
       
       if (!root.isEnabled()) {
-        callback.callback(true, null);
-        return;
+        return Task.forResult(true);
       }
       
       String ipAddress = root.getIpAddress();
@@ -116,21 +107,21 @@ public class LightSet extends Collection<Light> {
       try {
         url = new URL("http", ipAddress, 80, "/api/" + root.getUserName() + "/lights");
       } catch (MalformedURLException e) {
-        callback.callback(null, e);
-        return;
+        return Task.forError(e);
       }
-      Http.getInstance().get(null, url, new Callback<JSONObject>() {
-        public void callback(JSONObject object, Exception error) {
-          if (error != null) {
-            callback.callback(null, error);
-            return;
-          }
-
+      
+      final ArrayList<Light> toRemove = new ArrayList<Light>();
+      final ArrayList<Light> toAdd = new ArrayList<Light>();
+      
+      Http http = Http.getInstance();
+      return http.get(null, url).onSuccessTask(new Continuation<JSONObject, Task<Boolean>>() {
+        @Override
+        public Task<Boolean> then(Task<JSONObject> task) throws Exception {
+          JSONObject object = task.getResult();
           @SuppressWarnings("unchecked")
           Iterator<String> keys = (Iterator<String>) object.keys();
 
           // Record all the original lights.
-          final ArrayList<Light> toRemove = new ArrayList<Light>();
           each(new Visitor<Light>() {
             @Override
             public void visit(Light light) {
@@ -138,31 +129,26 @@ public class LightSet extends Collection<Light> {
             }
           });
 
-          final ArrayList<Light> toAdd = new ArrayList<Light>();
-          fetchLights(keys, object, toAdd, toRemove, new Callback<Boolean>() {
-            public void callback(Boolean result, Exception error) {
-              if (error != null) {
-                callback.callback(null, error);
-                return;
-              }
-
-              Collections.sort(toAdd, new Comparator<Light>() {
-                @Override
-                public int compare(Light lhs, Light rhs) {
-                  return lhs.getId().compareTo(rhs.getId());
-                }
-              });
-              for (Light light : toAdd) {
-                add(light);
-                light.connect();
-              }
-              for (Light light : toRemove) {
-                remove(light);
-                light.disconnect();
-              }
-              callback.callback(Boolean.TRUE, null);
+          return fetchLights(keys, object, toAdd, toRemove);
+        }
+      }).onSuccess(new Continuation<Boolean, Boolean>() {
+        @Override
+        public Boolean then(Task<Boolean> arg0) throws Exception {
+          Collections.sort(toAdd, new Comparator<Light>() {
+            @Override
+            public int compare(Light lhs, Light rhs) {
+              return lhs.getId().compareTo(rhs.getId());
             }
           });
+          for (Light light : toAdd) {
+            add(light);
+            light.connect();
+          }
+          for (Light light : toRemove) {
+            remove(light);
+            light.disconnect();
+          }
+          return true;
         }
       });
     }

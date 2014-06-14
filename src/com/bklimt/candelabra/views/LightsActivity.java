@@ -9,7 +9,6 @@ import com.bklimt.candelabra.backbone.Visitor;
 import com.bklimt.candelabra.models.Light;
 import com.bklimt.candelabra.models.LightSet;
 import com.bklimt.candelabra.models.RootViewModel;
-import com.bklimt.candelabra.util.Callback;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
@@ -24,6 +23,10 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+
+import bolts.Capture;
+import bolts.Continuation;
+import bolts.Task;
 
 public class LightsActivity extends Activity implements CollectionListener<Light> {
   private Logger log = Logger.getLogger(getClass().getName());
@@ -99,56 +102,61 @@ public class LightsActivity extends Activity implements CollectionListener<Light
   }
 
   private void showSaveDialog() {
+    final Capture<DialogInterface> dialog = new Capture<DialogInterface>();
+    final Capture<String> name = new Capture<String>();
+    
     final PromptDialog saveDialog = new PromptDialog();
     saveDialog.setTitleText(R.string.save_preset);
     saveDialog.setPositiveText(R.string.save);
     saveDialog.setNegativeText(R.string.cancel);
-    saveDialog.show(this, new Callback<DialogInterface>() {
+    saveDialog.show(this).onSuccessTask(new Continuation<DialogInterface, Task<Boolean>>() {
       @Override
-      public void callback(final DialogInterface dialog, Exception error) {
+      public Task<Boolean> then(Task<DialogInterface> task) throws Exception {
+        dialog.set(task.getResult());
         if (saveDialog.getText() == null) {
-          dialog.dismiss();
-          return;
+          return Task.forResult(false);
         }
 
-        final String name = saveDialog.getText();
-        if (RootViewModel.get().getPresets().findById(name) == null) {
-          RootViewModel.get().savePreset(LightsActivity.this, name);
-          dialog.dismiss();
-          return;
+        name.set(saveDialog.getText());
+        if (RootViewModel.get().getPresets().findById(name.get()) == null) {
+          return Task.forResult(true);
         }
 
-        confirmOverwrite(new Callback<Boolean>() {
-          @Override
-          public void callback(Boolean result, Exception error) {
-            if (Boolean.TRUE.equals(result)) {
-              RootViewModel.get().savePreset(LightsActivity.this, name);
-              dialog.dismiss();
-            }
-          }
-        });
+        return confirmOverwrite();
+      }
+    }).continueWith(new Continuation<Boolean, Void>() {
+      public Void then(Task<Boolean> task) throws Exception {
+        if (task.getResult()) {
+          RootViewModel.get().savePreset(LightsActivity.this, name.get());
+        }
+        dialog.get().dismiss();
+        return null;
       }
     });
   }
 
-  private void confirmOverwrite(final Callback<Boolean> callback) {
+  private Task<Boolean> confirmOverwrite() {
+    final Task<Boolean>.TaskCompletionSource tcs = Task.create();
+    
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.overwrite_preset);
     builder.setPositiveButton(R.string.save, new OnClickListener() {
       @Override
       public void onClick(final DialogInterface dialog, int which) {
-        callback.callback(Boolean.TRUE, null);
+        tcs.setResult(true);
         dialog.dismiss();
       }
     });
     builder.setNegativeButton(R.string.cancel, new OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int which) {
-        callback.callback(Boolean.FALSE, null);
+        tcs.setResult(false);
         dialog.dismiss();
       }
     });
     builder.show();
+    
+    return tcs.getTask();
   }
 
   private void showRenameLightDialog() {
@@ -160,12 +168,13 @@ public class LightsActivity extends Activity implements CollectionListener<Light
     renameDialog.setPositiveText(R.string.save);
     renameDialog.setNegativeText(R.string.cancel);
     renameDialog.setText(light.getName());
-    renameDialog.show(this, new Callback<DialogInterface>() {
+    renameDialog.show(this).onSuccess(new Continuation<DialogInterface, Void>() {
       @Override
-      public void callback(final DialogInterface dialog, Exception error) {
+      public Void then(Task<DialogInterface> task) throws Exception {
+        DialogInterface dialog = task.getResult();
         if (renameDialog.getText() == null) {
           dialog.dismiss();
-          return;
+          return null;
         }
         String newName = renameDialog.getText();
         if (newName.length() > 32) {
@@ -173,6 +182,7 @@ public class LightsActivity extends Activity implements CollectionListener<Light
         }
         light.setName(newName);
         dialog.dismiss();
+        return null;
       }
     });
   }

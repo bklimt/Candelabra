@@ -1,12 +1,11 @@
 package com.bklimt.candelabra.views;
 
+import bolts.Task;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.widget.EditText;
-
-import com.bklimt.candelabra.util.Callback;
 
 public class PromptDialog {
   private String text = null;
@@ -41,7 +40,9 @@ public class PromptDialog {
     return this;
   }
 
-  public void show(Context context, final Callback<DialogInterface> callback) {
+  public Task<DialogInterface> show(Context context) {
+    final Task<DialogInterface>.TaskCompletionSource tcs = Task.create();
+    
     final EditText editText = new EditText(context);
     editText.setText(text);
     editText.selectAll();
@@ -57,16 +58,18 @@ public class PromptDialog {
         if (text.length() == 0) {
           text = null;
         }
-        callback.callback(dialog, null);
+        tcs.setResult(dialog);
       }
     });
     builder.setNegativeButton(negativeText, new OnClickListener() {
       @Override
       public void onClick(DialogInterface dialog, int which) {
         setText(null);
-        callback.callback(dialog, null);
+        tcs.setResult(dialog);
       }
     });
     builder.show();
+    
+    return tcs.getTask();
   }
 }

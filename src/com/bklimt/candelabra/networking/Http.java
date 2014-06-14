@@ -7,14 +7,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.bklimt.candelabra.util.Callback;
+import bolts.Task;
+
 import com.bklimt.candelabra.util.SingleItemQueue;
 
 public class Http {
@@ -119,50 +118,43 @@ public class Http {
   }
 
   private SingleItemQueue queue = new SingleItemQueue("HTTP Queue");
-  private Logger log = Logger.getLogger(getClass().getName());
 
-  public void get(String key, final URL url, final Callback<JSONObject> callback) {
+  public Task<JSONObject> get(String key, final URL url) {
+    final Task<JSONObject>.TaskCompletionSource tcs = Task.create();
     queue.enqueue(key, new Runnable() {
       @Override
       public void run() {
-        JSONObject result = null;
-        Exception error = null;
         try {
-          result = getNow(url);
+          tcs.setResult(getNow(url));
         } catch (Exception e) {
-          error = e;
-        }
-        try {
-          callback.callback(result, error);
-        } catch (Exception e) {
-          log.log(Level.SEVERE, "Unhandled exception.", e);
+          tcs.setError(e);
         }
       }
     });
+    return tcs.getTask();
   }
 
-  private void request(String key, final String method, final URL url, final JSONObject command,
-      final Callback<JSONArray> callback) {
+  private Task<JSONArray> request(String key, final String method, final URL url,
+      final JSONObject command) {
+    final Task<JSONArray>.TaskCompletionSource tcs = Task.create();
     queue.enqueue(key, new Runnable() {
       @Override
       public void run() {
-        JSONArray result = null;
-        Exception error = null;
         try {
-          result = requestNow(method, url, command);
+          tcs.setResult(requestNow(method, url, command));
         } catch (Exception e) {
-          error = e;
+          tcs.setError(e);
         }
-        callback.callback(result, error);
       }
     });
+    return tcs.getTask();
   }
 
-  public void put(String key, URL url, JSONObject command, Callback<JSONArray> callback) {
-    request(key, "PUT", url, command, callback);
+  public Task<JSONArray> put(String key, URL url, JSONObject command) {
+    return request(key, "PUT", url, command);
   }
 
-  public void post(String key, URL url, JSONObject command, Callback<JSONArray> callback) {
-    request(key, null, url, command, callback);
+  public Task<JSONArray> post(String key, URL url, JSONObject command) {
+    return request(key, null, url, command);
   }
 }

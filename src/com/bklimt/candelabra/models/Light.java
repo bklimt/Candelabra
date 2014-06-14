@@ -9,10 +9,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import bolts.Continuation;
+import bolts.Task;
+
 import com.bklimt.candelabra.backbone.Model;
 import com.bklimt.candelabra.backbone.ModelListener;
 import com.bklimt.candelabra.networking.Http;
-import com.bklimt.candelabra.util.Callback;
 
 public class Light extends Model {
   private class Updater implements ModelListener {
@@ -53,13 +55,15 @@ public class Light extends Model {
         return;
       }
 
-      Http.getInstance().put("SET_LIGHT_" + getId(), url, command, new Callback<JSONArray>() {
+      Task<JSONArray> task = Http.getInstance().put("SET_LIGHT_" + getId(), url, command);
+      task.continueWith(new Continuation<JSONArray, Void>() {
         @Override
-        public void callback(JSONArray result, final Exception e) {
-          if (e != null) {
+        public Void then(Task<JSONArray> task) throws Exception {
+          if (task.getError() != null) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Unable to set light color.",
-                e);
+                task.getError());
           }
+          return null;
         }
       });
     }

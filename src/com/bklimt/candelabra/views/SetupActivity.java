@@ -9,10 +9,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import bolts.Continuation;
+import bolts.Task;
+
 import com.bklimt.candelabra.R;
 import com.bklimt.candelabra.models.RootViewModel;
 import com.bklimt.candelabra.networking.Http;
-import com.bklimt.candelabra.util.Callback;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -77,10 +79,12 @@ public class SetupActivity extends Activity {
       return;
     }
 
-    Http.getInstance().post(null, url, command, new Callback<JSONArray>() {
+    Task<JSONArray> task = Http.getInstance().post(null, url, command);
+    task.continueWith(new Continuation<JSONArray, Void>() {
       @Override
-      public void callback(JSONArray result, Exception error) {
-        saveFinished(saveButton, error);
+      public Void then(Task<JSONArray> task) throws Exception {
+        saveFinished(saveButton, task.getError());
+        return null;
       }
     });
   }
