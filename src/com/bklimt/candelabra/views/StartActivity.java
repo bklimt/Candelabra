@@ -21,8 +21,37 @@ public class StartActivity extends Activity {
     setContentView(R.layout.activity_start);
 
     ParseAnalytics.trackAppOpened(getIntent());
+    
+    Task.<Void> forResult(null).continueWith(new Continuation<Void, Void>() {
+      @Override
+      public Void then(Task<Void> isAlreadySetup) throws Exception {
+        // Thread.sleep(5000);
+        return null;
+      }
+    }, Task.BACKGROUND_EXECUTOR).continueWithTask(new Continuation<Void, Task<Boolean>>() {
+      @Override
+      public Task<Boolean> then(Task<Void> isAlreadySetup) throws Exception {
+        return isAlreadySetup();
+      }
+    }, Task.UI_THREAD_EXECUTOR).continueWith(new Continuation<Boolean, Void>() {
+      @Override
+      public Void then(Task<Boolean> isAlreadySetup) throws Exception {
+        Intent intent = null;
+        if (!isAlreadySetup.getResult()) {
+          intent = new Intent(StartActivity.this, UpnpActivity.class);
+        } else {
+          intent = new Intent(StartActivity.this, LightsActivity.class);
+        }
+        startActivity(intent);
+        return null;
+      }
+    }, Task.UI_THREAD_EXECUTOR);
+  }
+  
+  private Task<Boolean> isAlreadySetup() {
     RootViewModel root = RootViewModel.get();
     final Logger log = Logger.getLogger(getClass().getName());
+    
     try {
       root.fetchDeviceSettings(StartActivity.this);
     } catch (Exception e) {
@@ -30,19 +59,17 @@ public class StartActivity extends Activity {
       Toast toast = Toast.makeText(StartActivity.this, "Unable to fetch device settings.",
           Toast.LENGTH_LONG);
       toast.show();
-      startNextActivity(false);
-      return;
+      return Task.forResult(false);
     }
 
     if (root.getIpAddress() == null) {
-      startNextActivity(false);
-      return;
+      return Task.forResult(false);
     }
 
     root.setEnabled(true);
-    root.fetchCurrentLights().continueWith(new Continuation<Boolean, Void>() {
+    return root.fetchCurrentLights().continueWith(new Continuation<Void, Boolean>() {
       @Override
-      public Void then(Task<Boolean> task) throws Exception {
+      public Boolean then(Task<Void> task) throws Exception {
         Exception error = task.getError();
         if (error != null) {
           // Disable the lights by default if we couldn't connect.
@@ -59,19 +86,8 @@ public class StartActivity extends Activity {
             }
           });
         }
-        startNextActivity(error == null);
-        return null;
+        return (error == null);
       }
-    });    
-  }
-
-  private void startNextActivity(boolean setup) {
-    Intent intent = null;
-    if (!setup) {
-      intent = new Intent(this, SetupActivity.class);
-    } else {
-      intent = new Intent(this, LightsActivity.class);
-    }
-    startActivity(intent);
+    }, Task.UI_THREAD_EXECUTOR);
   }
 }

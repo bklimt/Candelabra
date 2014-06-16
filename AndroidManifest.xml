@@ -6,9 +6,14 @@
 
     <uses-sdk
         android:minSdkVersion="13"
-        android:targetSdkVersion="17" />
+        android:targetSdkVersion="19" />
 
     <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- These permissions are needed for UPnP with Cling. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
         android:name="com.bklimt.candelabra.CandelabraApplication"
@@ -22,6 +27,15 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.bklimt.candelabra.views.UpnpActivity"
+            android:label="@string/app_name"
+            android:noHistory="true" >
+            <intent-filter>
+                <action android:name="candelabra.intent.action.UPNP" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
@@ -45,6 +59,8 @@
             android:name="com.bklimt.candelabra.views.PresetListActivity"
             android:label="@string/title_activity_preset_list" >
         </activity>
+        
+        <service android:name="org.teleal.cling.android.AndroidUpnpServiceImpl" />
     </application>
 
 </manifest>

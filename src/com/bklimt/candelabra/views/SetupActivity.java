@@ -1,20 +1,12 @@
 package com.bklimt.candelabra.views;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import bolts.Continuation;
 import bolts.Task;
 
 import com.bklimt.candelabra.R;
 import com.bklimt.candelabra.models.RootViewModel;
-import com.bklimt.candelabra.networking.Http;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -58,56 +50,20 @@ public class SetupActivity extends Activity {
     saveButton.setEnabled(false);
     skipButton.setEnabled(false);
 
-    RootViewModel root = RootViewModel.get();
+    final RootViewModel root = RootViewModel.get();
     root.setEnabled(true);
     root.saveDeviceSettings(SetupActivity.this);
 
-    JSONObject command = new JSONObject();
-    try {
-      command.put("username", root.getUserName());
-      command.put("devicetype", root.getDeviceType());
-    } catch (JSONException je) {
-      saveFinished(saveButton, je);
-      return;
-    }
-
-    URL url;
-    try {
-      url = new URL("http", root.getIpAddress(), 80, "/api");
-    } catch (MalformedURLException mue) {
-      saveFinished(saveButton, mue);
-      return;
-    }
-
-    Task<JSONArray> task = Http.getInstance().post(null, url, command);
-    task.continueWith(new Continuation<JSONArray, Void>() {
+    root.registerUsername().continueWith(new Continuation<Void, Void>() {
       @Override
-      public Void then(Task<JSONArray> task) throws Exception {
-        saveFinished(saveButton, task.getError());
+      public Void then(Task<Void> task) throws Exception {
+        startActivity(new Intent(SetupActivity.this, StartActivity.class));
         return null;
       }
-    });
+    }, Task.UI_THREAD_EXECUTOR);
   }
   
   private void onSkipClicked() {
     startActivity(new Intent(SetupActivity.this, LightsActivity.class));
-  }
-
-  private void saveFinished(final Button saveButton, final Exception error) {
-    runOnUiThread(new Runnable() {
-      public void run() {
-        saveButton.setEnabled(true);
-        skipButton.setEnabled(true);
-        if (error == null) {
-          startActivity(new Intent(SetupActivity.this, LightsActivity.class));
-        } else {
-          Logger.getLogger("com.bklimt.candelabra.SetupActivity").log(Level.SEVERE,
-              error.getMessage());
-          Toast toast = Toast.makeText(SetupActivity.this,
-              "Unable to save settings. " + error.getMessage(), Toast.LENGTH_LONG);
-          toast.show();
-        }
-      }
-    });
   }
 }

@@ -1,12 +1,14 @@
 package com.bklimt.candelabra.models;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import bolts.Continuation;
 import bolts.Task;
 
 import com.bklimt.candelabra.R;
@@ -105,8 +107,40 @@ public class RootViewModel extends Model {
     getLights().createMockLights();
   }
 
-  public Task<Boolean> fetchCurrentLights() {
+  public Task<Void> fetchCurrentLights() {
     return getLights().fetchCurrentLights();
+  }
+  
+  public Task<Void> registerUsername() {
+    return Task.<Void> forResult(null).continueWithTask(new Continuation<Void, Task<JSONObject>>() {
+      @Override
+      public Task<JSONObject> then(Task<Void> task) throws Exception {
+        // Try to GET the data about the user from the device.
+        URL url = new URL("http", getIpAddress(), 80, "/api/" + getUserName());
+        return Http.getInstance().get(null, url);
+      }
+    }, Task.UI_THREAD_EXECUTOR).continueWithTask(new Continuation<JSONObject, Task<Void>>() {
+      @Override
+      public Task<Void> then(Task<JSONObject> task) throws Exception {
+        if (task.isFaulted()) {
+          // Maybe the user isn't registered. Do a POST to set up the new user.
+          JSONObject command = new JSONObject();
+          command.put("username", getUserName());
+          command.put("devicetype", getDeviceType());
+          URL url = new URL("http", getIpAddress(), 80, "/api");
+          return Http.getInstance().post(null, url, command).makeVoid();
+        } else {
+          Logger logger = Logger.getLogger(getClass().getName());
+          logger.info("Initial information: " + task.getResult());
+        }
+        return Task.forResult(null);
+      }
+    }, Task.UI_THREAD_EXECUTOR).onSuccessTask(new Continuation<Void, Task<Void>>() {
+      @Override
+      public Task<Void> then(Task<Void> task) throws Exception {
+        return fetchCurrentLights();
+      }
+    }, Task.UI_THREAD_EXECUTOR);
   }
 
   public void saveDeviceSettings(Context context) {

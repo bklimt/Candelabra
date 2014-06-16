@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,10 +42,10 @@ public class LightSet extends Collection<Light> {
     }
   }
   
-  private Task<Boolean> fetchLights(final Iterator<String> keys, final JSONObject object,
+  private Task<Void> fetchLights(final Iterator<String> keys, final JSONObject object,
       final ArrayList<Light> toAdd, final ArrayList<Light> toRemove) {
     if (!keys.hasNext()) {
-      return Task.forResult(true);
+      return Task.forResult(null);
     }
 
     String key = keys.next();
@@ -62,7 +63,7 @@ public class LightSet extends Collection<Light> {
       value = object.getJSONObject(key);
       name = value.getString("name");
     } catch (JSONException e) {
-      return Task.forResult(false);
+      return Task.forError(e);
     }
     light.setId(key);
     light.setName(name);
@@ -79,9 +80,9 @@ public class LightSet extends Collection<Light> {
       return Task.forError(e);
     }
     Task<JSONObject> task = Http.getInstance().get(null, lightURL);
-    return task.onSuccessTask(new Continuation<JSONObject, Task<Boolean>>() {
+    return task.onSuccessTask(new Continuation<JSONObject, Task<Void>>() {
       @Override
-      public Task<Boolean> then(Task<JSONObject> task) throws Exception {
+      public Task<Void> then(Task<JSONObject> task) throws Exception {
         JSONObject lightObject = task.getResult();
         JSONObject state = lightObject.getJSONObject("state");
         finalLight.setOn(state.getBoolean("on"));
@@ -94,12 +95,15 @@ public class LightSet extends Collection<Light> {
     });
   }
 
-  public Task<Boolean> fetchCurrentLights() {
+  public Task<Void> fetchCurrentLights() {
+    final Logger logger = Logger.getLogger(getClass().getName());
+    logger.info("Fetching current lights...");
+    
     synchronized (lock) {
       RootViewModel root = RootViewModel.get();
       
       if (!root.isEnabled()) {
-        return Task.forResult(true);
+        return Task.forResult(null);
       }
       
       String ipAddress = root.getIpAddress();
@@ -114,10 +118,11 @@ public class LightSet extends Collection<Light> {
       final ArrayList<Light> toAdd = new ArrayList<Light>();
       
       Http http = Http.getInstance();
-      return http.get(null, url).onSuccessTask(new Continuation<JSONObject, Task<Boolean>>() {
+      return http.get(null, url).onSuccessTask(new Continuation<JSONObject, Task<Void>>() {
         @Override
-        public Task<Boolean> then(Task<JSONObject> task) throws Exception {
+        public Task<Void> then(Task<JSONObject> task) throws Exception {
           JSONObject object = task.getResult();
+          logger.info("Got light info: " + object);
           @SuppressWarnings("unchecked")
           Iterator<String> keys = (Iterator<String>) object.keys();
 
@@ -131,9 +136,9 @@ public class LightSet extends Collection<Light> {
 
           return fetchLights(keys, object, toAdd, toRemove);
         }
-      }).onSuccess(new Continuation<Boolean, Boolean>() {
+      }).onSuccess(new Continuation<Void, Void>() {
         @Override
-        public Boolean then(Task<Boolean> arg0) throws Exception {
+        public Void then(Task<Void> ignored) throws Exception {
           Collections.sort(toAdd, new Comparator<Light>() {
             @Override
             public int compare(Light lhs, Light rhs) {
@@ -148,7 +153,7 @@ public class LightSet extends Collection<Light> {
             remove(light);
             light.disconnect();
           }
-          return true;
+          return null;
         }
       });
     }
