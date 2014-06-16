@@ -1,7 +1,5 @@
 package com.bklimt.candelabra.views;
 
-import java.util.logging.Logger;
-
 import bolts.Continuation;
 import bolts.Task;
 
@@ -14,7 +12,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.Toast;
 
 public class SetupActivity extends Activity {
   private Button saveButton;
